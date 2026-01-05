@@ -1,7 +1,6 @@
-// import qs from "query-string";
 import { Search } from "lucide-react";
-
 import { type ChangeEvent, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useDebounceValue } from "usehooks-ts";
 import { cn } from "@/lib/utils";
@@ -11,28 +10,32 @@ interface SearchInputProps {
 }
 
 export const SearchInput = ({ className }: SearchInputProps) => {
-	// const router = useRouter();
-	const [value, setValue] = useState("");
-	const [debouncedValue, setDebouncedValue] = useDebounceValue("", 500);
+	const [searchParams, setSearchParams] = useSearchParams();
+	const urlSearch = searchParams.get("search") || "";
+	const [value, setValue] = useState(urlSearch);
+	const [debouncedValue, setDebouncedValue] = useDebounceValue(urlSearch, 500);
+
+	// Sync URL param to local state on mount/param change
+	useEffect(() => {
+		setValue(urlSearch);
+		setDebouncedValue(urlSearch);
+	}, [urlSearch, setDebouncedValue]);
+
+	// Update URL when debounced value changes
+	useEffect(() => {
+		const params = new URLSearchParams(searchParams);
+		if (debouncedValue.trim()) {
+			params.set("search", debouncedValue);
+		} else {
+			params.delete("search");
+		}
+		setSearchParams(params, { replace: true });
+	}, [debouncedValue, searchParams, setSearchParams]);
 
 	const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
 		setValue(e.target.value);
 		setDebouncedValue(e.target.value);
 	};
-
-	// useEffect(() => {
-	// 	const url = qs.stringifyUrl(
-	// 		{
-	// 			url: "/",
-	// 			query: {
-	// 				search: debouncedValue,
-	// 			},
-	// 		},
-	// 		{ skipEmptyString: true, skipNull: true }
-	// 	);
-
-	// 	router.push(url);
-	// }, [debouncedValue, router]);
 
 	return (
 		<div className="w-full relative">
