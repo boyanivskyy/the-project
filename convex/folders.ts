@@ -163,3 +163,13 @@ export const getItemCount = query({
 		};
 	},
 });
+
+export const getAllByDataroom = query({
+	args: { dataroomId: v.id("datarooms") },
+	handler: async (ctx, args) => {
+		return await ctx.db
+			.query("folders")
+			.withIndex("by_dataroomId", (q) => q.eq("dataroomId", args.dataroomId))
+			.collect();
+	},
+});
