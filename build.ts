@@ -128,6 +128,11 @@ console.log(
 	`📄 Found ${entrypoints.length} HTML ${entrypoints.length === 1 ? "file" : "files"} to process\n`
 );
 
+const convexUrl = process.env.CONVEX_URL;
+if (!convexUrl) {
+	console.warn("⚠️  Warning: CONVEX_URL environment variable is not set");
+}
+
 const result = await Bun.build({
 	entrypoints,
 	outdir,
@@ -137,6 +142,7 @@ const result = await Bun.build({
 	sourcemap: "none",
 	define: {
 		"process.env.NODE_ENV": JSON.stringify("production"),
+		"process.env.CONVEX_URL": JSON.stringify(convexUrl || ""),
 	},
 	...cliConfig,
 });
