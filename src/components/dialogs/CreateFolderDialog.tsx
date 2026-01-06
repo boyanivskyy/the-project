@@ -13,14 +13,15 @@ import { Label } from "../ui/label";
 import { toast } from "sonner";
 import { validateFileName } from "../../lib/validation";
 import { useCreateFolderDialog } from "../../stores/dialogs/useCreateFolderDialog";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 export const CreateFolderDialog = () => {
-	const { isOpen, initialValues, onClose } = useCreateFolderDialog();
+	const { isOpen, payload, close } = useCreateFolderDialog();
 	const [name, setName] = useState("");
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!initialValues.mutation || !initialValues.dataroomId) return;
+		if (!payload?.mutation || !payload.dataroomId) return;
 
 		const validation = validateFileName(name);
 		if (!validation.valid) {
@@ -29,32 +30,28 @@ export const CreateFolderDialog = () => {
 		}
 
 		try {
-			await initialValues.mutation({
+			await payload.mutation({
 				name: name.trim(),
-				dataroomId: initialValues.dataroomId,
-				parentFolderId: initialValues.parentFolderId,
+				dataroomId: payload.dataroomId,
+				parentFolderId: payload.parentFolderId || null,
 			});
 			toast.success("Folder created successfully");
 			setName("");
-			onClose();
+			close();
 		} catch (error) {
-			toast.error(
-				error instanceof Error
-					? error.message
-					: "Failed to create folder"
-			);
+			toast.error(toUserMessage(error, "Failed to create folder"));
 		}
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
+		<Dialog open={isOpen} onOpenChange={close}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{initialValues.title || "Create New Folder"}
+						{payload?.title || "Create New Folder"}
 					</DialogTitle>
 					<DialogDescription>
-						{initialValues.description ||
+						{payload?.description ||
 							"Enter a name for the new folder."}
 					</DialogDescription>
 				</DialogHeader>
@@ -75,7 +72,7 @@ export const CreateFolderDialog = () => {
 						<Button
 							type="button"
 							variant="outline"
-							onClick={onClose}
+							onClick={close}
 						>
 							Cancel
 						</Button>

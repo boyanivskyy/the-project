@@ -1,11 +1,11 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { type Folder } from "../../types";
+import { type Folder, type UserRole } from "../../types";
 import { SidebarTreeNode } from "./SidebarTreeNode";
 import { useSidebarStore } from "../../stores/sidebarStore";
 import { useEffect } from "react";
-import { useAuth } from "../../providers/AuthProvider";
+import { useAuth } from "../../features/auth/AuthProvider";
 
 interface SidebarTreeViewProps {
 	dataroomId?: Id<"datarooms">;
@@ -28,7 +28,7 @@ interface FolderWithChildren extends Folder {
 }
 
 interface DataroomNodeProps {
-	dataroom: { _id: Id<"datarooms">; name: string };
+	dataroom: { _id: Id<"datarooms">; name: string; role?: UserRole };
 	userId: Id<"users">;
 }
 
@@ -57,6 +57,7 @@ const DataroomNode = ({ dataroom, userId }: DataroomNodeProps) => {
 				hasChildren={hasFolders}
 				onToggle={() => toggleExpanded(dataroom._id)}
 				isLoading={folders === undefined}
+				role={dataroom.role}
 			/>
 			{isDataroomExpanded && (
 				<FolderTree

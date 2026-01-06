@@ -13,7 +13,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { useUploadFileDialog } from "../../stores/dialogs/useUploadFileDialog";
 
 export function UploadFileDialog() {
-	const { isOpen, initialValues, onClose } = useUploadFileDialog();
+	const { isOpen, payload, close } = useUploadFileDialog();
 	const [uploading, setUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,9 +24,9 @@ export function UploadFileDialog() {
 		if (!file) return;
 
 		if (
-			!initialValues.generateUploadUrl ||
-			!initialValues.createFile ||
-			!initialValues.dataroomId
+			!payload?.generateUploadUrl ||
+			!payload.createFile ||
+			!payload.dataroomId
 		)
 			return;
 
@@ -39,7 +39,7 @@ export function UploadFileDialog() {
 		setUploading(true);
 		try {
 			// Generate upload URL
-			const uploadUrl = await initialValues.generateUploadUrl();
+			const uploadUrl = await payload.generateUploadUrl();
 
 			// Upload file to Convex storage
 			const result = await fetch(uploadUrl, {
@@ -57,17 +57,17 @@ export function UploadFileDialog() {
 			] as Id<"_storage">;
 
 			// Create file record
-			await initialValues.createFile({
+			await payload.createFile({
 				name: file.name,
-				dataroomId: initialValues.dataroomId,
-				folderId: initialValues.folderId,
+				dataroomId: payload.dataroomId,
+				folderId: payload.folderId || null,
 				storageId,
 				mimeType: file.type,
 				size: file.size,
 			});
 
 			toast.success("File uploaded successfully");
-			onClose();
+			close();
 
 			if (fileInputRef.current) {
 				fileInputRef.current.value = "";
@@ -80,14 +80,14 @@ export function UploadFileDialog() {
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
+		<Dialog open={isOpen} onOpenChange={close}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{initialValues.title || "Upload PDF File"}
+						{payload?.title || "Upload PDF File"}
 					</DialogTitle>
 					<DialogDescription>
-						{initialValues.description ||
+						{payload?.description ||
 							"Select a PDF file to upload. Only PDF files are supported."}
 					</DialogDescription>
 				</DialogHeader>
@@ -105,7 +105,7 @@ export function UploadFileDialog() {
 					<Button
 						type="button"
 						variant="outline"
-						onClick={onClose}
+						onClick={close}
 						disabled={uploading}
 					>
 						Cancel

@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { ChevronRight, Home } from "lucide-react";
 import { useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { useAuth } from "../../features/auth/AuthProvider";
+import { api } from "../../../../convex/_generated/api";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { useAuth } from "../../auth/AuthProvider";
 
 interface BreadcrumbsProps {
 	dataroomId: Id<"datarooms">;

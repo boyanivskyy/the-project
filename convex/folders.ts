@@ -17,7 +17,7 @@ async function checkUserAccess(
 
 	const access = await ctx.db
 		.query("dataroomAccess")
-		.withIndex("by_dataroomId_userEmail", (q) =>
+		.withIndex("by_dataroomId_userEmail", (q: any) =>
 			q.eq("dataroomId", dataroomId).eq("userEmail", user.email)
 		)
 		.first();
@@ -28,9 +28,16 @@ async function checkUserAccess(
 
 	// Check if user has required role
 	if (requiredRole) {
-		const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 };
-		const userRoleLevel = roleHierarchy[access.role];
-		const requiredRoleLevel = roleHierarchy[requiredRole];
+		const roleHierarchy = {
+			owner: 4,
+			admin: 3,
+			editor: 2,
+			viewer: 1,
+		};
+		const userRoleLevel =
+			roleHierarchy[access.role as keyof typeof roleHierarchy];
+		const requiredRoleLevel =
+			roleHierarchy[requiredRole as keyof typeof roleHierarchy];
 
 		if (userRoleLevel < requiredRoleLevel) {
 			throw new Error("Insufficient permissions");

@@ -1,20 +1,20 @@
 import { Link } from "react-router";
 import { Folder, MoreVertical } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Card } from "../ui/card";
+import { api } from "../../../../convex/_generated/api";
+import { Card } from "../../../components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
-import { type Folder as FolderType } from "../../types";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
-import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
-import { useAuth } from "../../features/auth/AuthProvider";
+} from "../../../components/ui/dropdown-menu";
+import { Button } from "../../../components/ui/button";
+import { type Folder as FolderType } from "../../../types";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { useRenameDialog } from "../../../stores/dialogs/useRenameDialog";
+import { useDeleteDialog } from "../../../stores/dialogs/useDeleteDialog";
+import { useAuth } from "../../auth/AuthProvider";
 
 interface FolderCardProps {
 	folder: FolderType;
@@ -62,7 +62,7 @@ export function FolderCard({ folder, dataroomId }: FolderCardProps) {
 					<DropdownMenuContent align="end">
 					<DropdownMenuItem
 						onClick={() =>
-							renameDialog.onOpen({
+							renameDialog.open({
 								id: folder._id,
 								name: folder.name,
 								mutation: (args: {
@@ -76,7 +76,7 @@ export function FolderCard({ folder, dataroomId }: FolderCardProps) {
 					</DropdownMenuItem>
 					<DropdownMenuItem
 						onClick={() =>
-							deleteDialog.onOpen({
+							deleteDialog.open({
 								id: folder._id,
 								name: folder.name,
 								mutation: (args: { id: Id<"folders"> }) =>

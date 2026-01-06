@@ -6,7 +6,7 @@ import { DataroomPage } from "../pages/DataroomPage";
 import { FolderPage } from "../pages/FolderPage";
 import { LoginPage } from "../pages/LoginPage";
 import { SignupPage } from "../pages/SignupPage";
-import { ProtectedRoute } from "../components/auth/ProtectedRoute";
+import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { homeLoader, dataroomLoader, folderLoader } from "./loaders";
 import { GenericErrorBoundary, NotFoundErrorBoundary } from "./errorBoundaries";
 

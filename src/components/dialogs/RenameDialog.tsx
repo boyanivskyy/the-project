@@ -13,20 +13,21 @@ import { Label } from "../ui/label";
 import { toast } from "sonner";
 import { validateFileName } from "../../lib/validation";
 import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 export function RenameDialog() {
-	const { isOpen, initialValues, onClose } = useRenameDialog();
+	const { isOpen, payload, close } = useRenameDialog();
 	const [name, setName] = useState("");
 
 	useEffect(() => {
-		if (initialValues.name) {
-			setName(initialValues.name);
+		if (payload?.name) {
+			setName(payload.name);
 		}
-	}, [initialValues.name]);
+	}, [payload?.name]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!initialValues.mutation || !initialValues.id) return;
+		if (!payload?.mutation || !payload.id) return;
 
 		const validation = validateFileName(name);
 		if (!validation.valid) {
@@ -35,28 +36,26 @@ export function RenameDialog() {
 		}
 
 		try {
-			await initialValues.mutation({
-				id: initialValues.id,
+			await payload.mutation({
+				id: payload.id,
 				name: name.trim(),
 			});
 			toast.success("Renamed successfully");
-			onClose();
+			close();
 		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to rename"
-			);
+			toast.error(toUserMessage(error, "Failed to rename"));
 		}
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
+		<Dialog open={isOpen} onOpenChange={close}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{initialValues.title || "Rename"}
+						{payload?.title || "Rename"}
 					</DialogTitle>
 					<DialogDescription>
-						{initialValues.description ||
+						{payload?.description ||
 							"Enter a new name for this item."}
 					</DialogDescription>
 				</DialogHeader>
@@ -76,7 +75,7 @@ export function RenameDialog() {
 						<Button
 							type="button"
 							variant="outline"
-							onClick={onClose}
+							onClick={close}
 						>
 							Cancel
 						</Button>

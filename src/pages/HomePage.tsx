@@ -1,4 +1,4 @@
-import { DataroomList } from "../components/dataroom/DataroomList";
+import { DataroomList } from "../features/dataroom/components/DataroomList";
 
 export function HomePage() {
 	return <DataroomList />;

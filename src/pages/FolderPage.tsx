@@ -1,18 +1,12 @@
-import { useParams } from "react-router";
-import { FileExplorer } from "../components/explorer/FileExplorer";
+import { useLoaderData } from "react-router";
+import { FileExplorer } from "../features/explorer/components/FileExplorer";
 import type { Id } from "../../convex/_generated/dataModel";
 
 export function FolderPage() {
-	const { dataroomId, folderId } = useParams<{
-		dataroomId: string;
-		folderId: string;
+	const { dataroomId, folderId } = useLoaderData<{
+		dataroomId: Id<"datarooms">;
+		folderId: Id<"folders">;
 	}>();
 
-	// dataroomId and folderId are validated by the route loader, so they're safe to use
-	return (
-		<FileExplorer
-			dataroomId={dataroomId as Id<"datarooms">}
-			folderId={folderId as Id<"folders">}
-		/>
-	);
+	return <FileExplorer dataroomId={dataroomId} folderId={folderId} />;
 }

@@ -1,21 +1,22 @@
 import { Link } from "react-router";
 import { Database, MoreVertical, Users } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Card } from "../ui/card";
+import { api } from "../../../../convex/_generated/api";
+import { Card } from "../../../components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
-import { type Dataroom } from "../../types";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
-import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
-import { useManageAccessDialog } from "../../stores/dialogs/useManageAccessDialog";
-import { useAuth } from "../../providers/AuthProvider";
+} from "../../../components/ui/dropdown-menu";
+import { Button } from "../../../components/ui/button";
+import { type Dataroom } from "../../../types";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { useRenameDialog } from "../../../stores/dialogs/useRenameDialog";
+import { useDeleteDialog } from "../../../stores/dialogs/useDeleteDialog";
+import { useManageAccessDialog } from "../../../stores/dialogs/useManageAccessDialog";
+import { useAuth } from "../../auth/AuthProvider";
+import { RoleBadge } from "../../../components/shared/RoleBadge";
 
 interface DataroomCardProps {
 	dataroom: Dataroom;
@@ -48,11 +49,32 @@ export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
 						<Database className="h-6 w-6 text-primary" />
 					</div>
 					<div className="flex-1 min-w-0">
-						<h3 className="font-semibold text-lg truncate">
-							{dataroom.name}
-						</h3>
+						<div className="flex items-center gap-2">
+							<h3 className="font-semibold text-lg truncate">
+								{dataroom.name}
+							</h3>
+							{dataroom.role && (
+								<RoleBadge
+									role={dataroom.role}
+									size="default"
+									showLabel
+								/>
+							)}
+						</div>
 						<p className="text-sm text-muted-foreground">
-							{new Date(dataroom.createdAt).toLocaleDateString()}
+							{(() => {
+								const date = new Date(dataroom.createdAt);
+								const mm = String(date.getMonth() + 1).padStart(
+									2,
+									"0"
+								);
+								const dd = String(date.getDate()).padStart(
+									2,
+									"0"
+								);
+								const yyyy = date.getFullYear();
+								return `${mm}/${dd}/${yyyy}`;
+							})()}
 						</p>
 					</div>
 				</Link>
@@ -83,7 +105,7 @@ export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
 						)}
 						<DropdownMenuItem
 							onClick={() =>
-								renameDialog.onOpen({
+								renameDialog.open({
 									id: dataroom._id,
 									name: dataroom.name,
 									mutation: (args: {
@@ -102,7 +124,7 @@ export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
 						{dataroom.role === "owner" && (
 							<DropdownMenuItem
 								onClick={() =>
-									deleteDialog.onOpen({
+									deleteDialog.open({
 										id: dataroom._id,
 										name: dataroom.name,
 										mutation: (args: {

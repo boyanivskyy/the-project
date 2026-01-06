@@ -1,21 +1,21 @@
 import { File, MoreVertical } from "lucide-react";
 import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
-import { Card } from "../ui/card";
+import { api } from "../../../../convex/_generated/api";
+import { Card } from "../../../components/ui/card";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Button } from "../ui/button";
-import { FilePreviewDialog } from "../preview/FilePreviewDialog";
-import { type File as FileType } from "../../types";
-import { formatFileSize } from "../../lib/validation";
-import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
-import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
-import type { Id } from "../../../convex/_generated/dataModel";
-import { useAuth } from "../../features/auth/AuthProvider";
+} from "../../../components/ui/dropdown-menu";
+import { Button } from "../../../components/ui/button";
+import { FilePreviewDialog } from "../../../components/preview/FilePreviewDialog";
+import { type File as FileType } from "../../../types";
+import { formatFileSize } from "../../../lib/validation";
+import { useRenameDialog } from "../../../stores/dialogs/useRenameDialog";
+import { useDeleteDialog } from "../../../stores/dialogs/useDeleteDialog";
+import type { Id } from "../../../../convex/_generated/dataModel";
+import { useAuth } from "../../auth/AuthProvider";
 import { useRef } from "react";
 
 interface FileCardProps {
@@ -82,7 +82,7 @@ export function FileCard({ file }: FileCardProps) {
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() =>
-								renameDialog.onOpen({
+								renameDialog.open({
 									id: file._id,
 									name: file.name,
 									mutation: (args: {
@@ -100,7 +100,7 @@ export function FileCard({ file }: FileCardProps) {
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() =>
-								deleteDialog.onOpen({
+								deleteDialog.open({
 									id: file._id,
 									name: file.name,
 									mutation: (args: { id: Id<"files"> }) =>

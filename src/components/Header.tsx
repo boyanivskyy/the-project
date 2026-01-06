@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { SearchInput } from "./SearchInput";
 import { ThemeToggle } from "./shared/ThemeToggle";
-import { useAuth } from "../providers/AuthProvider";
+import { useAuth } from "../features/auth/AuthProvider";
 import { User, LogOut } from "lucide-react";
 import {
 	DropdownMenu,

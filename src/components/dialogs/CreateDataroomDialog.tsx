@@ -12,14 +12,15 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
 import { useCreateDataroomDialog } from "../../stores/dialogs/useCreateDataroomDialog";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 export const CreateDataroomDialog = () => {
-	const { isOpen, initialValues, onClose } = useCreateDataroomDialog();
+	const { isOpen, payload, close } = useCreateDataroomDialog();
 	const [name, setName] = useState("");
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!initialValues.mutation) return;
+		if (!payload?.mutation) return;
 
 		if (!name.trim()) {
 			toast.error("Please enter a dataroom name");
@@ -27,28 +28,24 @@ export const CreateDataroomDialog = () => {
 		}
 
 		try {
-			await initialValues.mutation({ name: name.trim() });
+			await payload.mutation({ name: name.trim() });
 			toast.success("Dataroom created successfully");
 			setName("");
-			onClose();
+			close();
 		} catch (error) {
-			toast.error(
-				error instanceof Error
-					? error.message
-					: "Failed to create dataroom"
-			);
+			toast.error(toUserMessage(error, "Failed to create dataroom"));
 		}
 	};
 
 	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
+		<Dialog open={isOpen} onOpenChange={close}>
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>
-						{initialValues.title || "Create New Dataroom"}
+						{payload?.title || "Create New Dataroom"}
 					</DialogTitle>
 					<DialogDescription>
-						{initialValues.description ||
+						{payload?.description ||
 							"Create a new dataroom to organize your documents and folders."}
 					</DialogDescription>
 				</DialogHeader>
@@ -69,7 +66,7 @@ export const CreateDataroomDialog = () => {
 						<Button
 							type="button"
 							variant="outline"
-							onClick={onClose}
+							onClick={close}
 						>
 							Cancel
 						</Button>

@@ -10,43 +10,42 @@ import {
 } from "../ui/alert-dialog";
 import { toast } from "sonner";
 import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 export const DeleteConfirmDialog = () => {
-	const { isOpen, initialValues, onClose } = useDeleteDialog();
+	const { isOpen, payload, close } = useDeleteDialog();
 
 	const handleDelete = async () => {
-		if (!initialValues.mutation || !initialValues.id) return;
+		if (!payload?.mutation || !payload.id) return;
 
 		try {
-			await initialValues.mutation({ id: initialValues.id });
+			await payload.mutation({ id: payload.id });
 			toast.success("Deleted successfully");
-			onClose();
+			close();
 		} catch (error) {
-			toast.error(
-				error instanceof Error ? error.message : "Failed to delete"
-			);
+			toast.error(toUserMessage(error, "Failed to delete"));
 		}
 	};
 
-	const itemCountText = initialValues.itemCount
-		? ` This will also delete ${initialValues.itemCount.total} item${initialValues.itemCount.total !== 1 ? "s" : ""} (${initialValues.itemCount.folders} folder${initialValues.itemCount.folders !== 1 ? "s" : ""}, ${initialValues.itemCount.files} file${initialValues.itemCount.files !== 1 ? "s" : ""}).`
+	const itemCountText = payload?.itemCount
+		? ` This will also delete ${payload.itemCount.total} item${payload.itemCount.total !== 1 ? "s" : ""} (${payload.itemCount.folders} folder${payload.itemCount.folders !== 1 ? "s" : ""}, ${payload.itemCount.files} file${payload.itemCount.files !== 1 ? "s" : ""}).`
 		: "";
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onClose}>
+		<AlertDialog open={isOpen} onOpenChange={close}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>
-						{initialValues.title || "Delete Item?"}
+						{payload?.title || "Delete Item?"}
 					</AlertDialogTitle>
 					<AlertDialogDescription>
-						{initialValues.description ||
-							`Are you sure you want to delete "${initialValues.name}"?`}
+						{payload?.description ||
+							`Are you sure you want to delete "${payload?.name}"?`}
 						{itemCountText} This action cannot be undone.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>
-					<AlertDialogCancel>Cancel</AlertDialogCancel>
+					<AlertDialogCancel onClick={close}>Cancel</AlertDialogCancel>
 					<AlertDialogAction
 						onClick={handleDelete}
 						className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

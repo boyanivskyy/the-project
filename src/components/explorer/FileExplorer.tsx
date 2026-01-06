@@ -11,7 +11,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { useSafeQuery } from "../../hooks/useSafeQuery";
 import { useCreateFolderDialog } from "../../stores/dialogs/useCreateFolderDialog";
 import { useUploadFileDialog } from "../../stores/dialogs/useUploadFileDialog";
-import { useAuth } from "../../providers/AuthProvider";
+import { useAuth } from "../../features/auth/AuthProvider";
 
 interface FileExplorerProps {
 	dataroomId: Id<"datarooms">;

@@ -13,7 +13,7 @@ import {
 	SelectValue,
 } from "../ui/select";
 import { useManageAccessDialog } from "../../stores/dialogs/useManageAccessDialog";
-import { useAuth } from "../../providers/AuthProvider";
+import { useAuth } from "../../features/auth/AuthProvider";
 import { toast } from "sonner";
 import { Mail, Trash2, UserPlus } from "lucide-react";
 import type { Id } from "../../../convex/_generated/dataModel";

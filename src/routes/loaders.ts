@@ -1,5 +1,6 @@
-import { LoaderFunctionArgs } from "react-router";
+import type { LoaderFunctionArgs } from "react-router";
 import { isValidConvexId } from "@/lib/convexUtils";
+import type { Id } from "../../convex/_generated/dataModel";
 
 /**
  * Loader for home route - no validation needed
@@ -19,7 +20,7 @@ export function dataroomLoader({ params }: LoaderFunctionArgs) {
 		throw new Response("Invalid dataroom ID", { status: 404 });
 	}
 
-	return { dataroomId };
+	return { dataroomId: dataroomId as Id<"datarooms"> };
 }
 
 /**
@@ -37,5 +38,8 @@ export function folderLoader({ params }: LoaderFunctionArgs) {
 		throw new Response("Invalid folder ID", { status: 404 });
 	}
 
-	return { dataroomId, folderId };
+	return {
+		dataroomId: dataroomId as Id<"datarooms">,
+		folderId: folderId as Id<"folders">,
+	};
 }

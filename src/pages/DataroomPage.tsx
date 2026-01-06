@@ -1,10 +1,9 @@
-import { useParams } from "react-router";
-import { FileExplorer } from "../components/explorer/FileExplorer";
+import { useLoaderData } from "react-router";
+import { FileExplorer } from "../features/explorer/components/FileExplorer";
 import type { Id } from "../../convex/_generated/dataModel";
 
 export function DataroomPage() {
-	const { dataroomId } = useParams<{ dataroomId: string }>();
+	const { dataroomId } = useLoaderData<{ dataroomId: Id<"datarooms"> }>();
 
-	// dataroomId is validated by the route loader, so it's safe to use
-	return <FileExplorer dataroomId={dataroomId as Id<"datarooms">} />;
+	return <FileExplorer dataroomId={dataroomId} />;
 }

@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { AuthProvider } from "./providers/AuthProvider";
+import { AuthProvider } from "./features/auth/AuthProvider";
 
 export const App = () => {
 	return (

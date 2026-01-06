@@ -10,7 +10,7 @@ import {
 } from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
 import { type File } from "../../types";
-import { useAuth } from "../../providers/AuthProvider";
+import { useAuth } from "../../features/auth/AuthProvider";
 
 interface FilePreviewDialogProps {
 	trigger?: (onOpen: (file: File) => void) => React.ReactNode;

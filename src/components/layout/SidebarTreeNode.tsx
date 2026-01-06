@@ -1,8 +1,9 @@
 import { ChevronRight, Folder, Database } from "lucide-react";
 import { Link, useLocation } from "react-router";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { type Folder as FolderType } from "../../types";
+import { type Folder as FolderType, type UserRole } from "../../types";
 import { cn } from "../../lib/utils";
+import { RoleBadge } from "../shared/RoleBadge";
 
 interface SidebarTreeNodeProps {
 	id: string;
@@ -15,6 +16,7 @@ interface SidebarTreeNodeProps {
 	hasChildren: boolean;
 	onToggle: () => void;
 	isLoading?: boolean;
+	role?: UserRole;
 }
 
 export function SidebarTreeNode({
@@ -28,6 +30,7 @@ export function SidebarTreeNode({
 	hasChildren,
 	onToggle,
 	isLoading = false,
+	role,
 }: SidebarTreeNodeProps) {
 	const location = useLocation();
 	const isActive =
@@ -88,6 +91,9 @@ export function SidebarTreeNode({
 					>
 						{name}
 					</span>
+					{type === "dataroom" && role && (
+						<RoleBadge role={role} size="small" />
+					)}
 				</Link>
 			</div>
 			{isLoading && (
