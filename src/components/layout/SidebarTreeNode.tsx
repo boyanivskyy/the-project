@@ -1,6 +1,6 @@
 import { ChevronRight, Folder, Database } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
-import { Id } from "../../../convex/_generated/dataModel";
+import { Link, useLocation } from "react-router";
+import type { Id } from "../../../convex/_generated/dataModel";
 import { type Folder as FolderType } from "../../types";
 import { cn } from "../../lib/utils";
 
@@ -49,7 +49,7 @@ export function SidebarTreeNode({
 			<div
 				className={cn(
 					"flex items-center gap-2 px-2 py-1.5 rounded-md group hover:bg-accent transition-colors",
-					isActive && "bg-accent"
+					isActive && "bg-primary/15 border-l-2 border-l-primary"
 				)}
 				style={{ paddingLeft: `${paddingLeft}px` }}
 			>
@@ -62,7 +62,9 @@ export function SidebarTreeNode({
 						}}
 						className="p-0.5 hover:bg-accent-foreground/10 rounded transition-transform"
 						style={{
-							transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)",
+							transform: isExpanded
+								? "rotate(90deg)"
+								: "rotate(0deg)",
 						}}
 					>
 						<ChevronRight className="h-4 w-4 text-muted-foreground" />

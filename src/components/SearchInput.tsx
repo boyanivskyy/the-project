@@ -1,6 +1,6 @@
 import { Search } from "lucide-react";
 import { type ChangeEvent, useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { Input } from "@/components/ui/input";
 import { useDebounceValue } from "usehooks-ts";
 import { cn } from "@/lib/utils";
@@ -13,7 +13,10 @@ export const SearchInput = ({ className }: SearchInputProps) => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const urlSearch = searchParams.get("search") || "";
 	const [value, setValue] = useState(urlSearch);
-	const [debouncedValue, setDebouncedValue] = useDebounceValue(urlSearch, 500);
+	const [debouncedValue, setDebouncedValue] = useDebounceValue(
+		urlSearch,
+		500
+	);
 
 	// Sync URL param to local state on mount/param change
 	useEffect(() => {

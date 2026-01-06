@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -9,52 +7,49 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
+import { useCreateDataroomDialog } from "../../stores/dialogs/useCreateDataroomDialog";
 
-interface CreateDataroomDialogProps {
-	trigger?: React.ReactNode;
-}
-
-export function CreateDataroomDialog({
-	trigger,
-}: CreateDataroomDialogProps) {
-	const [open, setOpen] = useState(false);
+export const CreateDataroomDialog = () => {
+	const { isOpen, initialValues, onClose } = useCreateDataroomDialog();
 	const [name, setName] = useState("");
-	const createDataroom = useMutation(api.datarooms.create);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!initialValues.mutation) return;
+
 		if (!name.trim()) {
 			toast.error("Please enter a dataroom name");
 			return;
 		}
 
 		try {
-			await createDataroom({ name: name.trim() });
+			await initialValues.mutation({ name: name.trim() });
 			toast.success("Dataroom created successfully");
 			setName("");
-			setOpen(false);
+			onClose();
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to create dataroom"
+				error instanceof Error
+					? error.message
+					: "Failed to create dataroom"
 			);
 		}
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{trigger || <Button>Create Dataroom</Button>}
-			</DialogTrigger>
+		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Create New Dataroom</DialogTitle>
+					<DialogTitle>
+						{initialValues.title || "Create New Dataroom"}
+					</DialogTitle>
 					<DialogDescription>
-						Create a new dataroom to organize your documents and folders.
+						{initialValues.description ||
+							"Create a new dataroom to organize your documents and folders."}
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>
@@ -74,7 +69,7 @@ export function CreateDataroomDialog({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => setOpen(false)}
+							onClick={onClose}
 						>
 							Cancel
 						</Button>
@@ -84,4 +79,4 @@ export function CreateDataroomDialog({
 			</DialogContent>
 		</Dialog>
 	);
-}
+};

@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -14,34 +12,21 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
 import { validateFileName } from "../../lib/validation";
-import { type Folder, type File } from "../../types";
+import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
 
-interface RenameDialogProps {
-	open: boolean;
-	onOpenChange: (open: boolean) => void;
-	item: Folder | File | null;
-	type: "folder" | "file";
-}
-
-export function RenameDialog({
-	open,
-	onOpenChange,
-	item,
-	type,
-}: RenameDialogProps) {
+export function RenameDialog() {
+	const { isOpen, initialValues, onClose } = useRenameDialog();
 	const [name, setName] = useState("");
-	const updateFolder = useMutation(api.folders.update);
-	const updateFile = useMutation(api.files.update);
 
 	useEffect(() => {
-		if (item) {
-			setName(item.name);
+		if (initialValues.name) {
+			setName(initialValues.name);
 		}
-	}, [item]);
+	}, [initialValues.name]);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!item) return;
+		if (!initialValues.mutation || !initialValues.id) return;
 
 		const validation = validateFileName(name);
 		if (!validation.valid) {
@@ -50,27 +35,29 @@ export function RenameDialog({
 		}
 
 		try {
-			if (type === "folder") {
-				await updateFolder({ id: item._id, name: name.trim() });
-			} else {
-				await updateFile({ id: item._id, name: name.trim() });
-			}
-			toast.success(`${type === "folder" ? "Folder" : "File"} renamed successfully`);
-			onOpenChange(false);
+			await initialValues.mutation({
+				id: initialValues.id,
+				name: name.trim(),
+			});
+			toast.success("Renamed successfully");
+			onClose();
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : `Failed to rename ${type}`
+				error instanceof Error ? error.message : "Failed to rename"
 			);
 		}
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
+		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Rename {type === "folder" ? "Folder" : "File"}</DialogTitle>
+					<DialogTitle>
+						{initialValues.title || "Rename"}
+					</DialogTitle>
 					<DialogDescription>
-						Enter a new name for this {type}.
+						{initialValues.description ||
+							"Enter a new name for this item."}
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>
@@ -89,7 +76,7 @@ export function RenameDialog({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => onOpenChange(false)}
+							onClick={onClose}
 						>
 							Cancel
 						</Button>

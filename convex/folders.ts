@@ -1,5 +1,7 @@
+import { Id, type Doc } from "./_generated/dataModel";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { deleteFolderRecursive } from "./folderUtils";
 
 export const list = query({
 	args: {
@@ -19,8 +21,14 @@ export const list = query({
 });
 
 export const get = query({
-	args: { id: v.id("folders") },
+	args: { id: v.id("folders"), dataroomId: v.id("datarooms") },
 	handler: async (ctx, args) => {
+		const folder = await ctx.db.get(args.id);
+
+		if (!folder || folder.dataroomId !== args.dataroomId) {
+			throw new Error("Folder not found");
+		}
+
 		return await ctx.db.get(args.id);
 	},
 });
@@ -111,36 +119,6 @@ export const remove = mutation({
 	},
 });
 
-// Helper function to recursively delete folders
-async function deleteFolderRecursive(
-	ctx: any,
-	folderId: any
-): Promise<void> {
-	// Delete all subfolders
-	const subfolders = await ctx.db
-		.query("folders")
-		.withIndex("by_parentFolderId", (q) => q.eq("parentFolderId", folderId))
-		.collect();
-
-	for (const subfolder of subfolders) {
-		await deleteFolderRecursive(ctx, subfolder._id);
-	}
-
-	// Delete all files in this folder
-	const files = await ctx.db
-		.query("files")
-		.withIndex("by_folderId", (q) => q.eq("folderId", folderId))
-		.collect();
-
-	for (const file of files) {
-		await ctx.db.delete(file._id);
-		await ctx.storage.delete(file.storageId);
-	}
-
-	// Delete the folder itself
-	await ctx.db.delete(folderId);
-}
-
 export const getItemCount = query({
 	args: { id: v.id("folders") },
 	handler: async (ctx, args) => {
@@ -169,7 +147,39 @@ export const getAllByDataroom = query({
 	handler: async (ctx, args) => {
 		return await ctx.db
 			.query("folders")
-			.withIndex("by_dataroomId", (q) => q.eq("dataroomId", args.dataroomId))
+			.withIndex("by_dataroomId", (q) =>
+				q.eq("dataroomId", args.dataroomId)
+			)
 			.collect();
+	},
+});
+
+export const getBreadcrumbPath = query({
+	args: {
+		folderId: v.id("folders"),
+		dataroomId: v.id("datarooms"),
+	},
+	handler: async (ctx, args) => {
+		const path: Array<{ _id: string; name: string }> = [];
+		let currentFolderId: Id<"folders"> | null = args.folderId;
+
+		// Walk up the parent chain until we reach the root (parentFolderId is null)
+		while (currentFolderId !== null) {
+			const folder: Doc<"folders"> | null =
+				await ctx.db.get(currentFolderId);
+			if (!folder || folder.dataroomId !== args.dataroomId) {
+				break;
+			}
+
+			// Add to beginning of array so we get root-to-leaf order
+			path.unshift({
+				_id: folder._id,
+				name: folder.name,
+			});
+
+			currentFolderId = folder.parentFolderId;
+		}
+
+		return path;
 	},
 });

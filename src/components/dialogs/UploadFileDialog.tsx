@@ -1,6 +1,4 @@
 import { useState, useRef } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -9,32 +7,28 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "../ui/dialog";
 import { toast } from "sonner";
 import type { Id } from "../../../convex/_generated/dataModel";
-import { Upload } from "lucide-react";
+import { useUploadFileDialog } from "../../stores/dialogs/useUploadFileDialog";
 
-interface UploadFileDialogProps {
-	dataroomId: Id<"datarooms">;
-	folderId?: Id<"folders"> | null;
-	trigger?: React.ReactNode;
-}
-
-export function UploadFileDialog({
-	dataroomId,
-	folderId = null,
-	trigger,
-}: UploadFileDialogProps) {
-	const [open, setOpen] = useState(false);
+export function UploadFileDialog() {
+	const { isOpen, initialValues, onClose } = useUploadFileDialog();
 	const [uploading, setUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
-	const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-	const createFile = useMutation(api.files.create);
 
-	const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileSelect = async (
+		e: React.ChangeEvent<HTMLInputElement>
+	) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
+
+		if (
+			!initialValues.generateUploadUrl ||
+			!initialValues.createFile ||
+			!initialValues.dataroomId
+		)
+			return;
 
 		// Validate file type
 		if (file.type !== "application/pdf") {
@@ -45,8 +39,7 @@ export function UploadFileDialog({
 		setUploading(true);
 		try {
 			// Generate upload URL
-			const uploadUrl = await generateUploadUrl();
-			console.log("uploadUrl", uploadUrl);
+			const uploadUrl = await initialValues.generateUploadUrl();
 
 			// Upload file to Convex storage
 			const result = await fetch(uploadUrl, {
@@ -62,20 +55,19 @@ export function UploadFileDialog({
 			const storageId = JSON.parse(await result.text())[
 				"storageId"
 			] as Id<"_storage">;
-			console.log("storageId", storageId);
 
 			// Create file record
-			await createFile({
+			await initialValues.createFile({
 				name: file.name,
-				dataroomId,
-				folderId,
+				dataroomId: initialValues.dataroomId,
+				folderId: initialValues.folderId,
 				storageId,
 				mimeType: file.type,
 				size: file.size,
 			});
 
 			toast.success("File uploaded successfully");
-			setOpen(false);
+			onClose();
 
 			if (fileInputRef.current) {
 				fileInputRef.current.value = "";
@@ -88,21 +80,15 @@ export function UploadFileDialog({
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{trigger || (
-					<Button disabled={uploading}>
-						<Upload className="h-4 w-4 mr-2" />
-						Upload PDF
-					</Button>
-				)}
-			</DialogTrigger>
+		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Upload PDF File</DialogTitle>
+					<DialogTitle>
+						{initialValues.title || "Upload PDF File"}
+					</DialogTitle>
 					<DialogDescription>
-						Select a PDF file to upload. Only PDF files are
-						supported.
+						{initialValues.description ||
+							"Select a PDF file to upload. Only PDF files are supported."}
 					</DialogDescription>
 				</DialogHeader>
 				<div className="py-4">
@@ -119,7 +105,7 @@ export function UploadFileDialog({
 					<Button
 						type="button"
 						variant="outline"
-						onClick={() => setOpen(false)}
+						onClick={onClose}
 						disabled={uploading}
 					>
 						Cancel

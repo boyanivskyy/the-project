@@ -1,38 +1,39 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { ChevronRight, Home } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
 
 interface BreadcrumbsProps {
 	dataroomId: Id<"datarooms">;
 	folderId?: Id<"folders"> | null;
 }
 
-export function Breadcrumbs({ dataroomId, folderId }: BreadcrumbsProps) {
+export const Breadcrumbs = ({ dataroomId, folderId }: BreadcrumbsProps) => {
 	const dataroom = useQuery(api.datarooms.get, { id: dataroomId });
-	const folder = useQuery(
-		api.folders.get,
-		folderId ? { id: folderId } : "skip"
+	const folderPath = useQuery(
+		api.folders.getBreadcrumbPath,
+		folderId ? { folderId, dataroomId } : "skip"
 	);
 
 	if (!dataroom) {
 		return <div className="h-6" />;
 	}
 
-	const crumbs = [
-		{ name: dataroom.name, path: `/dataroom/${dataroomId}` },
-	];
+	const crumbs = [{ name: dataroom.name, path: `/dataroom/${dataroomId}` }];
 
-	if (folderId && folder) {
-		crumbs.push({
-			name: folder.name,
-			path: `/dataroom/${dataroomId}/folder/${folderId}`,
+	// Add all parent folders from the path
+	if (folderPath) {
+		folderPath.forEach((folder) => {
+			crumbs.push({
+				name: folder.name,
+				path: `/dataroom/${dataroomId}/folder/${folder._id}`,
+			});
 		});
 	}
 
 	return (
-		<nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+		<nav className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-6">
 			<Link
 				to="/"
 				className="hover:text-foreground transition-colors flex items-center gap-1"
@@ -58,4 +59,4 @@ export function Breadcrumbs({ dataroomId, folderId }: BreadcrumbsProps) {
 			))}
 		</nav>
 	);
-}
+};

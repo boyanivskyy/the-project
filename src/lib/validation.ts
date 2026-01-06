@@ -1,12 +1,14 @@
-export function formatFileSize(bytes: number): string {
+export const formatFileSize = (bytes: number): string => {
 	if (bytes === 0) return "0 Bytes";
 	const k = 1024;
 	const sizes = ["Bytes", "KB", "MB", "GB"];
 	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
-}
+	return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
+};
 
-export function validateFileName(name: string): { valid: boolean; error?: string } {
+export const validateFileName = (
+	name: string
+): { valid: boolean; error?: string } => {
 	if (!name.trim()) {
 		return { valid: false, error: "Name cannot be empty" };
 	}
@@ -19,4 +21,4 @@ export function validateFileName(name: string): { valid: boolean; error?: string
 		return { valid: false, error: "Name contains invalid characters" };
 	}
 	return { valid: true };
-}
+};

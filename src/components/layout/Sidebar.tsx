@@ -1,52 +1,35 @@
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Plus } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
-import { CreateDataroomDialog } from "../dataroom/CreateDataroomDialog";
 import { SidebarTreeView } from "./SidebarTreeView";
-import { useSidebarState } from "../../hooks/useSidebarState";
-import { cn } from "../../lib/utils";
+import { useCreateDataroomDialog } from "../../stores/dialogs/useCreateDataroomDialog";
 
 export function Sidebar() {
-	const { isCollapsed, toggleCollapsed } = useSidebarState();
+	const createDataroomDialog = useCreateDataroomDialog();
+	const createDataroom = useMutation(api.datarooms.create);
 
 	return (
-		<aside
-			className={cn(
-				"bg-background border-r border-border transition-all duration-300 flex flex-col h-full",
-				isCollapsed ? "w-[60px]" : "w-[350px]"
-			)}
-		>
-			{/* Toggle Button */}
-			<div className="p-2 border-b border-border">
-				<Button
-					variant="ghost"
-					size="icon"
-					onClick={toggleCollapsed}
-					className="w-full"
-				>
-					{isCollapsed ? (
-						<PanelLeftOpen className="h-5 w-5" />
-					) : (
-						<PanelLeftClose className="h-5 w-5" />
-					)}
-				</Button>
+		<aside className="bg-background border-r border-border flex flex-col h-full w-[300px]">
+			{/* Tree View - scrollable */}
+			<div className="flex-1 overflow-y-auto">
+				<SidebarTreeView />
 			</div>
 
-			{/* Add Dataroom Button - only visible when expanded */}
-			{!isCollapsed && (
-				<div className="p-2 border-b border-border">
-					<CreateDataroomDialog
-						trigger={
-							<Button className="w-full" size="sm">
-								Add Dataroom
-							</Button>
-						}
-					/>
-				</div>
-			)}
-
-			{/* Tree View */}
-			<div className="flex-1 overflow-y-auto">
-				{!isCollapsed && <SidebarTreeView />}
+			{/* Add Dataroom Button - sticky at bottom */}
+			<div className="p-3 border-t border-border shrink-0 bg-background">
+				<Button
+					className="w-full"
+					size="default"
+					onClick={() =>
+						createDataroomDialog.onOpen({
+							mutation: (args) => createDataroom(args),
+						})
+					}
+				>
+					<Plus className="size-4" />
+					Add Dataroom
+				</Button>
 			</div>
 		</aside>
 	);

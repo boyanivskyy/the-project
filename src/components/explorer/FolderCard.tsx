@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Folder, MoreVertical } from "lucide-react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { Card } from "../ui/card";
 import {
 	DropdownMenu,
@@ -9,21 +11,22 @@ import {
 } from "../ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { type Folder as FolderType } from "../../types";
-import { Id } from "../../../convex/_generated/dataModel";
+import type { Id } from "../../../convex/_generated/dataModel";
+import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
+import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
 
 interface FolderCardProps {
 	folder: FolderType;
 	dataroomId: Id<"datarooms">;
-	onRename: () => void;
-	onDelete: () => void;
 }
 
-export function FolderCard({
-	folder,
-	dataroomId,
-	onRename,
-	onDelete,
-}: FolderCardProps) {
+export function FolderCard({ folder, dataroomId }: FolderCardProps) {
+	const renameDialog = useRenameDialog();
+	const deleteDialog = useDeleteDialog();
+	const updateFolder = useMutation(api.folders.update);
+	const deleteFolder = useMutation(api.folders.remove);
+	const itemCount = useQuery(api.folders.getItemCount, { id: folder._id });
+
 	return (
 		<Card className="p-4 hover:shadow-md transition-shadow group">
 			<div className="flex items-center gap-4">
@@ -52,8 +55,33 @@ export function FolderCard({
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
-						<DropdownMenuItem onClick={onRename}>Rename</DropdownMenuItem>
-						<DropdownMenuItem onClick={onDelete} className="text-destructive">
+						<DropdownMenuItem
+							onClick={() =>
+								renameDialog.onOpen({
+									id: folder._id,
+									name: folder.name,
+									mutation: (args: {
+										id: Id<"folders">;
+										name: string;
+									}) => updateFolder(args),
+								})
+							}
+						>
+							Rename
+						</DropdownMenuItem>
+						<DropdownMenuItem
+							onClick={() =>
+								deleteDialog.onOpen({
+									id: folder._id,
+									name: folder.name,
+									mutation: (args: { id: Id<"folders"> }) =>
+										deleteFolder(args),
+									itemCount: itemCount,
+									title: "Delete Folder?",
+								})
+							}
+							className="text-destructive"
+						>
 							Delete
 						</DropdownMenuItem>
 					</DropdownMenuContent>

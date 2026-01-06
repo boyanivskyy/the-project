@@ -10,6 +10,7 @@
 
 import type * as datarooms from "../datarooms.js";
 import type * as files from "../files.js";
+import type * as folderUtils from "../folderUtils.js";
 import type * as folders from "../folders.js";
 
 import type {
@@ -21,6 +22,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   datarooms: typeof datarooms;
   files: typeof files;
+  folderUtils: typeof folderUtils;
   folders: typeof folders;
 }>;
 

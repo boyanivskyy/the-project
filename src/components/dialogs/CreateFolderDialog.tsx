@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { Button } from "../ui/button";
 import {
 	Dialog,
@@ -9,31 +7,21 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { toast } from "sonner";
-import { Id } from "../../../convex/_generated/dataModel";
 import { validateFileName } from "../../lib/validation";
+import { useCreateFolderDialog } from "../../stores/dialogs/useCreateFolderDialog";
 
-interface CreateFolderDialogProps {
-	dataroomId: Id<"datarooms">;
-	parentFolderId?: Id<"folders"> | null;
-	trigger?: React.ReactNode;
-}
-
-export function CreateFolderDialog({
-	dataroomId,
-	parentFolderId = null,
-	trigger,
-}: CreateFolderDialogProps) {
-	const [open, setOpen] = useState(false);
+export const CreateFolderDialog = () => {
+	const { isOpen, initialValues, onClose } = useCreateFolderDialog();
 	const [name, setName] = useState("");
-	const createFolder = useMutation(api.folders.create);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!initialValues.mutation || !initialValues.dataroomId) return;
+
 		const validation = validateFileName(name);
 		if (!validation.valid) {
 			toast.error(validation.error);
@@ -41,31 +29,33 @@ export function CreateFolderDialog({
 		}
 
 		try {
-			await createFolder({
+			await initialValues.mutation({
 				name: name.trim(),
-				dataroomId,
-				parentFolderId,
+				dataroomId: initialValues.dataroomId,
+				parentFolderId: initialValues.parentFolderId,
 			});
 			toast.success("Folder created successfully");
 			setName("");
-			setOpen(false);
+			onClose();
 		} catch (error) {
 			toast.error(
-				error instanceof Error ? error.message : "Failed to create folder"
+				error instanceof Error
+					? error.message
+					: "Failed to create folder"
 			);
 		}
 	};
 
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				{trigger || <Button>New Folder</Button>}
-			</DialogTrigger>
+		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent>
 				<DialogHeader>
-					<DialogTitle>Create New Folder</DialogTitle>
+					<DialogTitle>
+						{initialValues.title || "Create New Folder"}
+					</DialogTitle>
 					<DialogDescription>
-						Enter a name for the new folder.
+						{initialValues.description ||
+							"Enter a name for the new folder."}
 					</DialogDescription>
 				</DialogHeader>
 				<form onSubmit={handleSubmit}>
@@ -85,7 +75,7 @@ export function CreateFolderDialog({
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => setOpen(false)}
+							onClick={onClose}
 						>
 							Cancel
 						</Button>
@@ -95,4 +85,4 @@ export function CreateFolderDialog({
 			</DialogContent>
 		</Dialog>
 	);
-}
+};

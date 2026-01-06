@@ -17,7 +17,10 @@ export default defineSchema({
 	})
 		.index("by_dataroomId", ["dataroomId"])
 		.index("by_parentFolderId", ["parentFolderId"])
-		.index("by_dataroomId_parentFolderId", ["dataroomId", "parentFolderId"]),
+		.index("by_dataroomId_parentFolderId", [
+			"dataroomId",
+			"parentFolderId",
+		]),
 
 	files: defineTable({
 		name: v.string(),

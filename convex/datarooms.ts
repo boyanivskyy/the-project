@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { deleteFolderRecursive } from "./folderUtils";
 
 export const list = query({
 	handler: async (ctx) => {
@@ -79,32 +80,23 @@ export const remove = mutation({
 	},
 });
 
-// Helper function to recursively delete folders
-async function deleteFolderRecursive(
-	ctx: any,
-	folderId: any
-): Promise<void> {
-	// Delete all subfolders
-	const subfolders = await ctx.db
-		.query("folders")
-		.withIndex("by_parentFolderId", (q) => q.eq("parentFolderId", folderId))
-		.collect();
+export const getItemCount = query({
+	args: { id: v.id("datarooms") },
+	handler: async (ctx, args) => {
+		const folders = await ctx.db
+			.query("folders")
+			.withIndex("by_dataroomId", (q) => q.eq("dataroomId", args.id))
+			.collect();
 
-	for (const subfolder of subfolders) {
-		await deleteFolderRecursive(ctx, subfolder._id);
-	}
+		const files = await ctx.db
+			.query("files")
+			.withIndex("by_dataroomId", (q) => q.eq("dataroomId", args.id))
+			.collect();
 
-	// Delete all files in this folder
-	const files = await ctx.db
-		.query("files")
-		.withIndex("by_folderId", (q) => q.eq("folderId", folderId))
-		.collect();
-
-	for (const file of files) {
-		await ctx.db.delete(file._id);
-		await ctx.storage.delete(file.storageId);
-	}
-
-	// Delete the folder itself
-	await ctx.db.delete(folderId);
-}
+		return {
+			folders: folders.length,
+			files: files.length,
+			total: folders.length + files.length,
+		};
+	},
+});
