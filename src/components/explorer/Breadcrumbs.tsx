@@ -3,6 +3,7 @@ import { ChevronRight, Home } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface BreadcrumbsProps {
 	dataroomId: Id<"datarooms">;
@@ -10,10 +11,16 @@ interface BreadcrumbsProps {
 }
 
 export const Breadcrumbs = ({ dataroomId, folderId }: BreadcrumbsProps) => {
-	const dataroom = useQuery(api.datarooms.get, { id: dataroomId });
+	const { user } = useAuth();
+	const dataroom = useQuery(
+		api.datarooms.get,
+		user ? { id: dataroomId, userId: user._id } : "skip"
+	);
 	const folderPath = useQuery(
 		api.folders.getBreadcrumbPath,
-		folderId ? { folderId, dataroomId } : "skip"
+		folderId && user
+			? { folderId, dataroomId, userId: user._id }
+			: "skip"
 	);
 
 	if (!dataroom) {

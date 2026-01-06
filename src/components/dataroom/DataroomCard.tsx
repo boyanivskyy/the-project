@@ -1,5 +1,5 @@
 import { Link } from "react-router";
-import { Database, MoreVertical } from "lucide-react";
+import { Database, MoreVertical, Users } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card } from "../ui/card";
@@ -14,19 +14,28 @@ import { type Dataroom } from "../../types";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
 import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
+import { useManageAccessDialog } from "../../stores/dialogs/useManageAccessDialog";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface DataroomCardProps {
 	dataroom: Dataroom;
 }
 
 export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
+	const { user } = useAuth();
 	const renameDialog = useRenameDialog();
 	const deleteDialog = useDeleteDialog();
+	const manageAccessDialog = useManageAccessDialog();
 	const updateDataroom = useMutation(api.datarooms.update);
 	const deleteDataroom = useMutation(api.datarooms.remove);
-	const itemCount = useQuery(api.datarooms.getItemCount, {
-		id: dataroom._id,
-	});
+	const itemCount = useQuery(
+		api.datarooms.getItemCount,
+		user ? { id: dataroom._id, userId: user._id } : "skip"
+	);
+
+	// Check if user is owner or admin to show manage access option
+	const canManageAccess =
+		dataroom.role === "owner" || dataroom.role === "admin";
 
 	return (
 		<Card className="p-6 hover:shadow-md transition-shadow h-full flex flex-col group">
@@ -59,6 +68,19 @@ export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
+						{canManageAccess && (
+							<DropdownMenuItem
+								onClick={() =>
+									manageAccessDialog.onOpen(
+										dataroom._id,
+										dataroom.name
+									)
+								}
+							>
+								<Users className="mr-2 h-4 w-4" />
+								Manage Access
+							</DropdownMenuItem>
+						)}
 						<DropdownMenuItem
 							onClick={() =>
 								renameDialog.onOpen({
@@ -67,27 +89,38 @@ export const DataroomCard = ({ dataroom }: DataroomCardProps) => {
 									mutation: (args: {
 										id: Id<"datarooms">;
 										name: string;
-									}) => updateDataroom(args),
+									}) =>
+										updateDataroom({
+											...args,
+											userId: user!._id,
+										}),
 								})
 							}
 						>
 							Rename
 						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() =>
-								deleteDialog.onOpen({
-									id: dataroom._id,
-									name: dataroom.name,
-									mutation: (args: { id: Id<"datarooms"> }) =>
-										deleteDataroom(args),
-									itemCount: itemCount,
-									title: "Delete Dataroom?",
-								})
-							}
-							className="text-destructive"
-						>
-							Delete
-						</DropdownMenuItem>
+						{dataroom.role === "owner" && (
+							<DropdownMenuItem
+								onClick={() =>
+									deleteDialog.onOpen({
+										id: dataroom._id,
+										name: dataroom.name,
+										mutation: (args: {
+											id: Id<"datarooms">;
+										}) =>
+											deleteDataroom({
+												...args,
+												userId: user!._id,
+											}),
+										itemCount: itemCount,
+										title: "Delete Dataroom?",
+									})
+								}
+								className="text-destructive"
+							>
+								Delete
+							</DropdownMenuItem>
+						)}
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>

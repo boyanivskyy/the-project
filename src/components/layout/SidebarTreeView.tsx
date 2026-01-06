@@ -5,6 +5,7 @@ import { type Folder } from "../../types";
 import { SidebarTreeNode } from "./SidebarTreeNode";
 import { useSidebarStore } from "../../stores/sidebarStore";
 import { useEffect } from "react";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface SidebarTreeViewProps {
 	dataroomId?: Id<"datarooms">;
@@ -28,14 +29,16 @@ interface FolderWithChildren extends Folder {
 
 interface DataroomNodeProps {
 	dataroom: { _id: Id<"datarooms">; name: string };
+	userId: Id<"users">;
 }
 
-const DataroomNode = ({ dataroom }: DataroomNodeProps) => {
+const DataroomNode = ({ dataroom, userId }: DataroomNodeProps) => {
 	const { isExpanded, toggleExpanded } = useSidebarStore();
 	const isDataroomExpanded = isExpanded(dataroom._id);
 	// Always fetch folders to know if dataroom has children (for chevron visibility)
 	const folders = useQuery(api.folders.getAllByDataroom, {
 		dataroomId: dataroom._id,
+		userId,
 	});
 
 	const folderList = folders || [];
@@ -111,7 +114,11 @@ const FolderTree = ({ folders, dataroomId, level }: FolderTreeProps) => {
 };
 
 export const SidebarTreeView = ({ dataroomId }: SidebarTreeViewProps) => {
-	const datarooms = useQuery(api.datarooms.list);
+	const { user } = useAuth();
+	const datarooms = useQuery(
+		api.datarooms.list,
+		user ? { userId: user._id } : "skip"
+	);
 	const expandedItems = useSidebarStore((state) => state.expandedItems);
 	const setExpanded = useSidebarStore((state) => state.setExpanded);
 
@@ -129,7 +136,7 @@ export const SidebarTreeView = ({ dataroomId }: SidebarTreeViewProps) => {
 		}
 	}, [datarooms, expandedItems?.length, setExpanded]);
 
-	if (datarooms === undefined) {
+	if (datarooms === undefined || !user) {
 		return (
 			<div className="p-4 text-sm text-muted-foreground">Loading...</div>
 		);
@@ -146,7 +153,11 @@ export const SidebarTreeView = ({ dataroomId }: SidebarTreeViewProps) => {
 	return (
 		<div className="py-2">
 			{datarooms.map((dataroom) => (
-				<DataroomNode key={dataroom._id} dataroom={dataroom} />
+				<DataroomNode
+					key={dataroom._id}
+					dataroom={dataroom}
+					userId={user._id}
+				/>
 			))}
 		</div>
 	);

@@ -14,6 +14,7 @@ import { type Folder as FolderType } from "../../types";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
 import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface FolderCardProps {
 	folder: FolderType;
@@ -21,11 +22,15 @@ interface FolderCardProps {
 }
 
 export function FolderCard({ folder, dataroomId }: FolderCardProps) {
+	const { user } = useAuth();
 	const renameDialog = useRenameDialog();
 	const deleteDialog = useDeleteDialog();
 	const updateFolder = useMutation(api.folders.update);
 	const deleteFolder = useMutation(api.folders.remove);
-	const itemCount = useQuery(api.folders.getItemCount, { id: folder._id });
+	const itemCount = useQuery(
+		api.folders.getItemCount,
+		user ? { id: folder._id, userId: user._id } : "skip"
+	);
 
 	return (
 		<Card className="p-4 hover:shadow-md transition-shadow group">
@@ -55,35 +60,35 @@ export function FolderCard({ folder, dataroomId }: FolderCardProps) {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
-						<DropdownMenuItem
-							onClick={() =>
-								renameDialog.onOpen({
-									id: folder._id,
-									name: folder.name,
-									mutation: (args: {
-										id: Id<"folders">;
-										name: string;
-									}) => updateFolder(args),
-								})
-							}
-						>
-							Rename
-						</DropdownMenuItem>
-						<DropdownMenuItem
-							onClick={() =>
-								deleteDialog.onOpen({
-									id: folder._id,
-									name: folder.name,
-									mutation: (args: { id: Id<"folders"> }) =>
-										deleteFolder(args),
-									itemCount: itemCount,
-									title: "Delete Folder?",
-								})
-							}
-							className="text-destructive"
-						>
-							Delete
-						</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={() =>
+							renameDialog.onOpen({
+								id: folder._id,
+								name: folder.name,
+								mutation: (args: {
+									id: Id<"folders">;
+									name: string;
+								}) => updateFolder({ ...args, userId: user!._id }),
+							})
+						}
+					>
+						Rename
+					</DropdownMenuItem>
+					<DropdownMenuItem
+						onClick={() =>
+							deleteDialog.onOpen({
+								id: folder._id,
+								name: folder.name,
+								mutation: (args: { id: Id<"folders"> }) =>
+									deleteFolder({ ...args, userId: user!._id }),
+								itemCount: itemCount,
+								title: "Delete Folder?",
+							})
+						}
+						className="text-destructive"
+					>
+						Delete
+					</DropdownMenuItem>
 					</DropdownMenuContent>
 				</DropdownMenu>
 			</div>

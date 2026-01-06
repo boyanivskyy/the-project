@@ -10,28 +10,54 @@ import {
 } from "../ui/dialog";
 import { Skeleton } from "../ui/skeleton";
 import { type File } from "../../types";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface FilePreviewDialogProps {
-	trigger: (onOpen: (file: File) => void) => React.ReactNode;
+	trigger?: (onOpen: (file: File) => void) => React.ReactNode;
+	file?: File;
+	open?: boolean;
+	onOpenChange?: (open: boolean) => void;
 }
 
-export function FilePreviewDialog({ trigger }: FilePreviewDialogProps) {
-	const [open, setOpen] = useState(false);
-	const [file, setFile] = useState<File | null>(null);
+export function FilePreviewDialog({
+	trigger,
+	file: controlledFile,
+	open: controlledOpen,
+	onOpenChange: controlledOnOpenChange,
+}: FilePreviewDialogProps) {
+	const { user } = useAuth();
+	const [internalOpen, setInternalOpen] = useState(false);
+	const [internalFile, setInternalFile] = useState<File | null>(null);
 
-	const onOpen = (file: File) => {
-		setFile(file);
-		setOpen(true);
+	const isControlled = controlledOpen !== undefined;
+	const open = isControlled ? controlledOpen : internalOpen;
+	const file = controlledFile ?? internalFile;
+
+	const setOpen = (value: boolean) => {
+		if (isControlled) {
+			controlledOnOpenChange?.(value);
+		} else {
+			setInternalOpen(value);
+		}
+	};
+
+	const onOpen = (fileToOpen: File) => {
+		if (isControlled) {
+			controlledOnOpenChange?.(true);
+		} else {
+			setInternalFile(fileToOpen);
+			setInternalOpen(true);
+		}
 	};
 
 	const fileUrl = useQuery(
 		api.files.getUrl,
-		file ? { storageId: file.storageId } : "skip"
+		file && user ? { storageId: file.storageId, userId: user._id } : "skip"
 	);
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>{trigger(onOpen)}</DialogTrigger>
+			{trigger && <DialogTrigger asChild>{trigger(onOpen)}</DialogTrigger>}
 			<DialogContent className="max-w-4xl max-h-[90vh]">
 				<DialogHeader>
 					<DialogTitle>{file?.name}</DialogTitle>

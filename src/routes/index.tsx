@@ -1,13 +1,14 @@
 import type { RouteObject } from "react-router";
+import { App } from "../App";
 import { AppLayout } from "../components/layout/AppLayout";
 import { HomePage } from "../pages/HomePage";
 import { DataroomPage } from "../pages/DataroomPage";
 import { FolderPage } from "../pages/FolderPage";
+import { LoginPage } from "../pages/LoginPage";
+import { SignupPage } from "../pages/SignupPage";
+import { ProtectedRoute } from "../components/auth/ProtectedRoute";
 import { homeLoader, dataroomLoader, folderLoader } from "./loaders";
-import {
-	GenericErrorBoundary,
-	NotFoundErrorBoundary,
-} from "./errorBoundaries";
+import { GenericErrorBoundary, NotFoundErrorBoundary } from "./errorBoundaries";
 
 /**
  * Route configuration for the application
@@ -16,25 +17,45 @@ import {
 export const routes: RouteObject[] = [
 	{
 		path: "/",
-		element: <AppLayout />,
+		element: <App />,
 		errorElement: <GenericErrorBoundary />,
 		children: [
+			// Public routes
 			{
-				index: true,
-				element: <HomePage />,
-				loader: homeLoader,
+				path: "login",
+				element: <LoginPage />,
 			},
 			{
-				path: "dataroom/:dataroomId",
-				element: <DataroomPage />,
-				loader: dataroomLoader,
-				errorElement: <NotFoundErrorBoundary />,
+				path: "signup",
+				element: <SignupPage />,
 			},
+			// Protected routes
 			{
-				path: "dataroom/:dataroomId/folder/:folderId",
-				element: <FolderPage />,
-				loader: folderLoader,
-				errorElement: <NotFoundErrorBoundary />,
+				path: "/",
+				element: (
+					<ProtectedRoute>
+						<AppLayout />
+					</ProtectedRoute>
+				),
+				children: [
+					{
+						index: true,
+						element: <HomePage />,
+						loader: homeLoader,
+					},
+					{
+						path: "dataroom/:dataroomId",
+						element: <DataroomPage />,
+						loader: dataroomLoader,
+						errorElement: <NotFoundErrorBoundary />,
+					},
+					{
+						path: "dataroom/:dataroomId/folder/:folderId",
+						element: <FolderPage />,
+						loader: folderLoader,
+						errorElement: <NotFoundErrorBoundary />,
+					},
+				],
 			},
 		],
 	},

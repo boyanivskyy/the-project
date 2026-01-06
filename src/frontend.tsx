@@ -9,6 +9,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { AuthProvider } from "./providers/AuthProvider";
 import { routes } from "./routes";
 import "../styles/globals.css";
 

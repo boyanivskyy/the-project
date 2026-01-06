@@ -11,6 +11,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { useSafeQuery } from "../../hooks/useSafeQuery";
 import { useCreateFolderDialog } from "../../stores/dialogs/useCreateFolderDialog";
 import { useUploadFileDialog } from "../../stores/dialogs/useUploadFileDialog";
+import { useAuth } from "../../providers/AuthProvider";
 
 interface FileExplorerProps {
 	dataroomId: Id<"datarooms">;
@@ -18,6 +19,7 @@ interface FileExplorerProps {
 }
 
 export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
+	const { user } = useAuth();
 	const [searchParams] = useSearchParams();
 	const search = searchParams.get("search") || "";
 
@@ -32,6 +34,7 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 		isLoading: foldersLoading,
 		error: foldersError,
 	} = useSafeQuery(api.folders.list, {
+		userId: user!._id,
 		dataroomId,
 		parentFolderId: folderId || null,
 	});
@@ -41,6 +44,7 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 		isLoading: filesLoading,
 		error: filesError,
 	} = useSafeQuery(api.files.list, {
+		userId: user!._id,
 		dataroomId,
 		folderId: folderId || null,
 	});
@@ -115,7 +119,8 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 								createFolderDialog.onOpen({
 									dataroomId,
 									parentFolderId: folderId || null,
-									mutation: (args) => createFolder(args),
+									mutation: (args) =>
+										createFolder({ ...args, userId: user!._id }),
 								})
 							}
 						>
@@ -127,8 +132,9 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 									dataroomId,
 									folderId: folderId || null,
 									generateUploadUrl: () =>
-										generateUploadUrl(),
-									createFile: (args) => createFile(args),
+										generateUploadUrl({ userId: user!._id }),
+									createFile: (args) =>
+										createFile({ ...args, userId: user!._id }),
 								})
 							}
 						>
@@ -160,40 +166,46 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 						}
 						action={
 							!search ? (
-								<div className="flex gap-2">
-									<button
-										onClick={() =>
-											createFolderDialog.onOpen({
-												dataroomId,
-												parentFolderId:
-													folderId || null,
-												mutation: (args) =>
-													createFolder(args),
-											})
-										}
-										className="text-primary hover:underline"
-									>
-										Create folder
-									</button>
-									<span className="text-muted-foreground">
-										or
-									</span>
-									<button
-										onClick={() =>
-											uploadFileDialog.onOpen({
-												dataroomId,
-												folderId: folderId || null,
-												generateUploadUrl: () =>
-													generateUploadUrl(),
-												createFile: (args) =>
-													createFile(args),
-											})
-										}
-										className="text-primary hover:underline"
-									>
-										Upload file
-									</button>
-								</div>
+						<div className="flex gap-2">
+							<button
+								onClick={() =>
+									createFolderDialog.onOpen({
+										dataroomId,
+										parentFolderId:
+											folderId || null,
+										mutation: (args) =>
+											createFolder({
+												...args,
+												userId: user!._id,
+											}),
+									})
+								}
+								className="text-primary hover:underline"
+							>
+								Create folder
+							</button>
+							<span className="text-muted-foreground">
+								or
+							</span>
+							<button
+								onClick={() =>
+									uploadFileDialog.onOpen({
+										dataroomId,
+										folderId: folderId || null,
+										generateUploadUrl: () =>
+											generateUploadUrl({ userId: user!._id }),
+										createFile: (args) =>
+											createFile({
+												...args,
+												userId: user!._id,
+											}),
+									})
+								}
+								className="text-primary hover:underline"
+							>
+								Upload file
+							</button>
+						</div>
 							) : null
 						}
 					/>

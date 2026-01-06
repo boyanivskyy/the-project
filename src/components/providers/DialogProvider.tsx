@@ -4,6 +4,7 @@ import { DeleteConfirmDialog } from "../dialogs/DeleteConfirmDialog";
 import { CreateFolderDialog } from "../dialogs/CreateFolderDialog";
 import { UploadFileDialog } from "../dialogs/UploadFileDialog";
 import { CreateDataroomDialog } from "../dialogs/CreateDataroomDialog";
+import { ManageAccessDialog } from "../dialogs/ManageAccessDialog";
 
 export const DialogProvider = () => {
 	const [isMounted, setIsMounted] = useState(false);
@@ -22,6 +23,7 @@ export const DialogProvider = () => {
 			<CreateFolderDialog />
 			<UploadFileDialog />
 			<CreateDataroomDialog />
+			<ManageAccessDialog />
 		</>
 	);
 };

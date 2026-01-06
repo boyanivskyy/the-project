@@ -15,40 +15,49 @@ import { formatFileSize } from "../../lib/validation";
 import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
 import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { useAuth } from "../../providers/AuthProvider";
+import { useRef } from "react";
 
 interface FileCardProps {
 	file: FileType;
 }
 
 export function FileCard({ file }: FileCardProps) {
+	const { user } = useAuth();
 	const renameDialog = useRenameDialog();
 	const deleteDialog = useDeleteDialog();
 	const updateFile = useMutation(api.files.update);
 	const deleteFile = useMutation(api.files.remove);
+	const previewOnOpenRef = useRef<((file: FileType) => void) | null>(null);
 
 	return (
 		<Card className="p-4 hover:shadow-md transition-shadow group">
 			<div className="flex items-center gap-4">
 				<FilePreviewDialog
-					trigger={(onOpen) => (
-						<button
-							onClick={() => onOpen(file)}
-							className="flex-1 flex items-center gap-4 min-w-0 text-left"
-						>
-							<div className="p-3 bg-destructive/10 rounded-lg shrink-0">
-								<File className="h-6 w-6 text-destructive" />
-							</div>
-							<div className="flex-1 min-w-0">
-								<h3 className="font-medium truncate">
-									{file.name}
-								</h3>
-								<p className="text-xs text-muted-foreground">
-									{formatFileSize(file.size)} •{" "}
-									{new Date(file.createdAt).toLocaleString()}
-								</p>
-							</div>
-						</button>
-					)}
+					trigger={(onOpen) => {
+						previewOnOpenRef.current = onOpen;
+						return (
+							<button
+								onClick={() => onOpen(file)}
+								className="flex-1 flex items-center gap-4 min-w-0 text-left"
+							>
+								<div className="p-3 bg-destructive/10 rounded-lg shrink-0">
+									<File className="h-6 w-6 text-destructive" />
+								</div>
+								<div className="flex-1 min-w-0">
+									<h3 className="font-medium truncate">
+										{file.name}
+									</h3>
+									<p className="text-xs text-muted-foreground">
+										{formatFileSize(file.size)} •{" "}
+										{new Date(
+											file.createdAt
+										).toLocaleString()}
+									</p>
+								</div>
+							</button>
+						);
+					}}
 				/>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
@@ -61,13 +70,16 @@ export function FileCard({ file }: FileCardProps) {
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="end">
-						<FilePreviewDialog
-							trigger={(onOpen) => (
-								<DropdownMenuItem onClick={() => onOpen(file)}>
-									Preview
-								</DropdownMenuItem>
-							)}
-						/>
+						<DropdownMenuItem
+							onSelect={(e) => {
+								e.preventDefault();
+								if (previewOnOpenRef.current) {
+									previewOnOpenRef.current(file);
+								}
+							}}
+						>
+							Preview
+						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() =>
 								renameDialog.onOpen({
@@ -76,7 +88,11 @@ export function FileCard({ file }: FileCardProps) {
 									mutation: (args: {
 										id: Id<"files">;
 										name: string;
-									}) => updateFile(args),
+									}) =>
+										updateFile({
+											...args,
+											userId: user!._id,
+										}),
 								})
 							}
 						>
@@ -88,7 +104,10 @@ export function FileCard({ file }: FileCardProps) {
 									id: file._id,
 									name: file.name,
 									mutation: (args: { id: Id<"files"> }) =>
-										deleteFile(args),
+										deleteFile({
+											...args,
+											userId: user!._id,
+										}),
 									title: "Delete File?",
 								})
 							}

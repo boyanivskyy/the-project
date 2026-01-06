@@ -7,11 +7,16 @@ import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { useSearchParams } from "react-router";
 import { useCreateDataroomDialog } from "../../stores/dialogs/useCreateDataroomDialog";
+import { useAuth } from "../../providers/AuthProvider";
 
 export const DataroomList = () => {
+	const { user } = useAuth();
 	const [searchParams] = useSearchParams();
 	const search = searchParams.get("search") || "";
-	const datarooms = useQuery(api.datarooms.list);
+	const datarooms = useQuery(
+		api.datarooms.list,
+		user ? { userId: user._id } : "skip"
+	);
 	const createDataroomDialog = useCreateDataroomDialog();
 	const createDataroom = useMutation(api.datarooms.create);
 
@@ -48,15 +53,16 @@ export const DataroomList = () => {
 								? `Search results (${filteredDatarooms.length})`
 								: "Datarooms"}
 						</h2>
-						<Button
-							onClick={() =>
-								createDataroomDialog.onOpen({
-									mutation: (args) => createDataroom(args),
-								})
-							}
-						>
-							Create Dataroom
-						</Button>
+				<Button
+					onClick={() =>
+						createDataroomDialog.onOpen({
+							mutation: (args) =>
+								createDataroom({ ...args, userId: user!._id }),
+						})
+					}
+				>
+					Create Dataroom
+				</Button>
 					</div>
 				</div>
 				<div className="flex-1 overflow-y-auto">
@@ -76,7 +82,10 @@ export const DataroomList = () => {
 									onClick={() =>
 										createDataroomDialog.onOpen({
 											mutation: (args) =>
-												createDataroom(args),
+												createDataroom({
+													...args,
+													userId: user!._id,
+												}),
 										})
 									}
 									className="text-primary hover:underline"
@@ -104,7 +113,8 @@ export const DataroomList = () => {
 					<Button
 						onClick={() =>
 							createDataroomDialog.onOpen({
-								mutation: (args) => createDataroom(args),
+								mutation: (args) =>
+									createDataroom({ ...args, userId: user!._id }),
 							})
 						}
 					>

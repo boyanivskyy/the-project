@@ -2,11 +2,36 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
+	users: defineTable({
+		fullName: v.string(),
+		email: v.string(),
+		password: v.string(),
+		createdAt: v.number(),
+		updatedAt: v.number(),
+	}).index("by_email", ["email"]),
+
 	datarooms: defineTable({
 		name: v.string(),
+		ownerId: v.id("users"),
 		createdAt: v.number(),
 		updatedAt: v.number(),
 	}).index("by_createdAt", ["createdAt"]),
+
+	dataroomAccess: defineTable({
+		dataroomId: v.id("datarooms"),
+		userEmail: v.string(),
+		role: v.union(
+			v.literal("owner"),
+			v.literal("admin"),
+			v.literal("editor"),
+			v.literal("viewer")
+		),
+		invitedAt: v.number(),
+		invitedBy: v.id("users"),
+	})
+		.index("by_dataroomId", ["dataroomId"])
+		.index("by_userEmail", ["userEmail"])
+		.index("by_dataroomId_userEmail", ["dataroomId", "userEmail"]),
 
 	folders: defineTable({
 		name: v.string(),

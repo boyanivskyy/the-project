@@ -8,7 +8,10 @@
  * @module
  */
 
+import type * as auth from "../auth.js";
+import type * as dataroomAccess from "../dataroomAccess.js";
 import type * as datarooms from "../datarooms.js";
+import type * as emails from "../emails.js";
 import type * as files from "../files.js";
 import type * as folderUtils from "../folderUtils.js";
 import type * as folders from "../folders.js";
@@ -20,7 +23,10 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  auth: typeof auth;
+  dataroomAccess: typeof dataroomAccess;
   datarooms: typeof datarooms;
+  emails: typeof emails;
   files: typeof files;
   folderUtils: typeof folderUtils;
   folders: typeof folders;

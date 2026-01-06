@@ -3,12 +3,53 @@ import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { deleteFolderRecursive } from "./folderUtils";
 
+// Helper function to check user access
+async function checkUserAccess(
+	ctx: any,
+	userId: string,
+	dataroomId: string,
+	requiredRole?: "owner" | "admin" | "editor" | "viewer"
+) {
+	const user = await ctx.db.get(userId);
+	if (!user) {
+		throw new Error("User not found");
+	}
+
+	const access = await ctx.db
+		.query("dataroomAccess")
+		.withIndex("by_dataroomId_userEmail", (q) =>
+			q.eq("dataroomId", dataroomId).eq("userEmail", user.email)
+		)
+		.first();
+
+	if (!access) {
+		throw new Error("Access denied");
+	}
+
+	// Check if user has required role
+	if (requiredRole) {
+		const roleHierarchy = { owner: 4, admin: 3, editor: 2, viewer: 1 };
+		const userRoleLevel = roleHierarchy[access.role];
+		const requiredRoleLevel = roleHierarchy[requiredRole];
+
+		if (userRoleLevel < requiredRoleLevel) {
+			throw new Error("Insufficient permissions");
+		}
+	}
+
+	return access;
+}
+
 export const list = query({
 	args: {
+		userId: v.id("users"),
 		dataroomId: v.id("datarooms"),
 		parentFolderId: v.union(v.id("folders"), v.null()),
 	},
 	handler: async (ctx, args) => {
+		// Check if user has access to dataroom
+		await checkUserAccess(ctx, args.userId, args.dataroomId);
+
 		return await ctx.db
 			.query("folders")
 			.withIndex("by_dataroomId_parentFolderId", (q) =>
@@ -21,8 +62,15 @@ export const list = query({
 });
 
 export const get = query({
-	args: { id: v.id("folders"), dataroomId: v.id("datarooms") },
+	args: {
+		id: v.id("folders"),
+		dataroomId: v.id("datarooms"),
+		userId: v.id("users"),
+	},
 	handler: async (ctx, args) => {
+		// Check if user has access to dataroom
+		await checkUserAccess(ctx, args.userId, args.dataroomId);
+
 		const folder = await ctx.db.get(args.id);
 
 		if (!folder || folder.dataroomId !== args.dataroomId) {
@@ -35,11 +83,15 @@ export const get = query({
 
 export const create = mutation({
 	args: {
+		userId: v.id("users"),
 		name: v.string(),
 		dataroomId: v.id("datarooms"),
 		parentFolderId: v.union(v.id("folders"), v.null()),
 	},
 	handler: async (ctx, args) => {
+		// Check if user has editor permissions
+		await checkUserAccess(ctx, args.userId, args.dataroomId, "editor");
+
 		// Check for duplicate name
 		const existing = await ctx.db
 			.query("folders")
@@ -68,6 +120,7 @@ export const create = mutation({
 
 export const update = mutation({
 	args: {
+		userId: v.id("users"),
 		id: v.id("folders"),
 		name: v.string(),
 	},
@@ -76,6 +129,9 @@ export const update = mutation({
 		if (!folder) {
 			throw new Error("Folder not found");
 		}
+
+		// Check if user has editor permissions
+		await checkUserAccess(ctx, args.userId, folder.dataroomId, "editor");
 
 		// Check for duplicate name in the same location
 		const existing = await ctx.db
@@ -106,12 +162,15 @@ export const update = mutation({
 });
 
 export const remove = mutation({
-	args: { id: v.id("folders") },
+	args: { userId: v.id("users"), id: v.id("folders") },
 	handler: async (ctx, args) => {
 		const folder = await ctx.db.get(args.id);
 		if (!folder) {
 			throw new Error("Folder not found");
 		}
+
+		// Check if user has editor permissions
+		await checkUserAccess(ctx, args.userId, folder.dataroomId, "editor");
 
 		// Recursively delete all subfolders and files
 		await deleteFolderRecursive(ctx, args.id);
@@ -120,8 +179,16 @@ export const remove = mutation({
 });
 
 export const getItemCount = query({
-	args: { id: v.id("folders") },
+	args: { userId: v.id("users"), id: v.id("folders") },
 	handler: async (ctx, args) => {
+		const folder = await ctx.db.get(args.id);
+		if (!folder) {
+			throw new Error("Folder not found");
+		}
+
+		// Check if user has access
+		await checkUserAccess(ctx, args.userId, folder.dataroomId);
+
 		const folders = await ctx.db
 			.query("folders")
 			.withIndex("by_parentFolderId", (q) =>
@@ -143,8 +210,11 @@ export const getItemCount = query({
 });
 
 export const getAllByDataroom = query({
-	args: { dataroomId: v.id("datarooms") },
+	args: { userId: v.id("users"), dataroomId: v.id("datarooms") },
 	handler: async (ctx, args) => {
+		// Check if user has access
+		await checkUserAccess(ctx, args.userId, args.dataroomId);
+
 		return await ctx.db
 			.query("folders")
 			.withIndex("by_dataroomId", (q) =>
@@ -156,10 +226,14 @@ export const getAllByDataroom = query({
 
 export const getBreadcrumbPath = query({
 	args: {
+		userId: v.id("users"),
 		folderId: v.id("folders"),
 		dataroomId: v.id("datarooms"),
 	},
 	handler: async (ctx, args) => {
+		// Check if user has access
+		await checkUserAccess(ctx, args.userId, args.dataroomId);
+
 		const path: Array<{ _id: string; name: string }> = [];
 		let currentFolderId: Id<"folders"> | null = args.folderId;
 
