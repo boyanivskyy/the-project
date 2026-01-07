@@ -1,4 +1,3 @@
-import { useSearchParams } from "react-router";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { ItemGrid } from "./ItemGrid";
 import { EmptyState } from "../../../components/shared/EmptyState";
@@ -17,21 +16,13 @@ interface FileExplorerProps {
 
 export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 	const { user } = useAuth();
-	const [searchParams] = useSearchParams();
-	const search = searchParams.get("search") || "";
 
-	const {
-		isLoading,
-		error,
-		filteredFolders,
-		filteredFiles,
-		hasItems,
-		actions,
-	} = useExplorerItems({
-		userId: user?._id ?? null,
-		dataroomId,
-		folderId,
-	});
+	const { isLoading, error, folders, files, hasItems, actions } =
+		useExplorerItems({
+			userId: user?._id ?? null,
+			dataroomId,
+			folderId,
+		});
 
 	if (!user) {
 		return null;
@@ -68,13 +59,7 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 				/>
 
 				<PageTitleBar
-					title={
-						search
-							? `Search results (${filteredFolders.length + filteredFiles.length})`
-							: folderId
-								? "Folder Contents"
-								: "Files & Folders"
-					}
+					title={folderId ? "Folder Contents" : "Files & Folders"}
 					actions={
 						<>
 							<Button onClick={actions.openCreateFolderDialog}>
@@ -93,41 +78,33 @@ export const FileExplorer = ({ dataroomId, folderId }: FileExplorerProps) => {
 			<div className="flex-1 overflow-y-auto">
 				{hasItems ? (
 					<ItemGrid
-						folders={filteredFolders}
-						files={filteredFiles}
+						folders={folders}
+						files={files}
 						dataroomId={dataroomId}
 					/>
 				) : (
 					<EmptyState
-						icon={search ? FileIcon : FolderPlus}
-						title={
-							search ? "No items found" : "This folder is empty"
-						}
-						description={
-							search
-								? `No folders or files match "${search}"`
-								: "Create a folder or upload a file to get started"
-						}
+						icon={FolderPlus}
+						title="This folder is empty"
+						description="Create a folder or upload a file to get started"
 						action={
-							!search ? (
-								<div className="flex gap-2">
-									<button
-										onClick={actions.openCreateFolderDialog}
-										className="text-primary hover:underline"
-									>
-										Create folder
-									</button>
-									<span className="text-muted-foreground">
-										or
-									</span>
-									<button
-										onClick={actions.openUploadFileDialog}
-										className="text-primary hover:underline"
-									>
-										Upload file
-									</button>
-								</div>
-							) : null
+							<div className="flex gap-2">
+								<button
+									onClick={actions.openCreateFolderDialog}
+									className="text-primary hover:underline"
+								>
+									Create folder
+								</button>
+								<span className="text-muted-foreground">
+									or
+								</span>
+								<button
+									onClick={actions.openUploadFileDialog}
+									className="text-primary hover:underline"
+								>
+									Upload file
+								</button>
+							</div>
 						}
 					/>
 				)}

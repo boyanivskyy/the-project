@@ -4,7 +4,7 @@ import type { Id } from "../../../convex/_generated/dataModel";
 import { type Folder, type UserRole } from "../../types";
 import { SidebarTreeNode } from "./SidebarTreeNode";
 import { useSidebarStore } from "../../stores/sidebarStore";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "../../features/auth/AuthProvider";
 
 interface SidebarTreeViewProps {
@@ -32,8 +32,28 @@ interface DataroomNodeProps {
 	userId: Id<"users">;
 }
 
+const expandAllFoldersRecursively = (
+	folderTree: FolderWithChildren[],
+	expandedItems: string[],
+	setExpanded: (id: string, expanded: boolean) => void
+) => {
+	folderTree.forEach((folder) => {
+		if (!expandedItems.includes(folder._id)) {
+			setExpanded(folder._id, true);
+		}
+		if (folder.children && folder.children.length > 0) {
+			expandAllFoldersRecursively(
+				folder.children,
+				expandedItems,
+				setExpanded
+			);
+		}
+	});
+};
+
 const DataroomNode = ({ dataroom, userId }: DataroomNodeProps) => {
-	const { isExpanded, toggleExpanded } = useSidebarStore();
+	const { isExpanded, toggleExpanded, setExpanded, expandedItems } =
+		useSidebarStore();
 	const isDataroomExpanded = isExpanded(dataroom._id);
 	// Always fetch folders to know if dataroom has children (for chevron visibility)
 	const folders = useQuery(api.folders.getAllByDataroom, {
@@ -42,8 +62,23 @@ const DataroomNode = ({ dataroom, userId }: DataroomNodeProps) => {
 	});
 
 	const folderList = folders || [];
-	const folderTree = buildFolderTree(folderList, null);
+	const folderTree = useMemo(
+		() => buildFolderTree(folderList, null),
+		[folderList]
+	);
 	const hasFolders = folderTree.length > 0;
+
+	// Expand all folders by default on initial load (if dataroom is expanded and folders are loaded)
+	useEffect(() => {
+		if (
+			isDataroomExpanded &&
+			folders &&
+			folders.length > 0 &&
+			folderTree.length > 0
+		) {
+			expandAllFoldersRecursively(folderTree, expandedItems, setExpanded);
+		}
+	}, [isDataroomExpanded, folders, folderTree, expandedItems, setExpanded]);
 
 	return (
 		<div>
@@ -123,17 +158,17 @@ export const SidebarTreeView = ({ dataroomId }: SidebarTreeViewProps) => {
 	const expandedItems = useSidebarStore((state) => state.expandedItems);
 	const setExpanded = useSidebarStore((state) => state.setExpanded);
 
-	// Preload first dataroom on initial load
+	// Expand all datarooms by default on initial load
 	useEffect(() => {
 		if (
 			Array.isArray(datarooms) &&
 			datarooms.length &&
 			!expandedItems?.length
 		) {
-			const firstDataroomId = datarooms[0]?._id;
-			if (firstDataroomId) {
-				setExpanded(firstDataroomId, true);
-			}
+			// Expand all datarooms on initial load
+			datarooms.forEach((dataroom) => {
+				setExpanded(dataroom._id, true);
+			});
 		}
 	}, [datarooms, expandedItems?.length, setExpanded]);
 

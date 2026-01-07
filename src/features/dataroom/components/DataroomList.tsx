@@ -4,32 +4,26 @@ import { LoadingList } from "../../../components/shared/LoadingList";
 import { PageTitleBar } from "../../../components/shared/PageTitleBar";
 import { Database } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import { useSearchParams } from "react-router";
 import { useAuth } from "../../auth/AuthProvider";
 import { useDataroomList } from "../hooks/useDataroomList";
 
 export const DataroomList = () => {
 	const { user } = useAuth();
-	const [searchParams] = useSearchParams();
-	const search = searchParams.get("search") || "";
 
-	const { datarooms, isLoading, filteredDatarooms, openCreateDialog } =
-		useDataroomList({ userId: user?._id ?? null });
+	const { datarooms, isLoading, openCreateDialog } = useDataroomList({
+		userId: user?._id ?? null,
+	});
 
 	if (isLoading) {
 		return <LoadingList />;
 	}
 
-	const title = search
-		? `Search results (${filteredDatarooms.length})`
-		: "Datarooms";
-
-	if (filteredDatarooms.length === 0) {
+	if (!datarooms || datarooms.length === 0) {
 		return (
 			<div className="flex flex-col h-full overflow-hidden">
 				<div className="shrink-0">
 					<PageTitleBar
-						title={title}
+						title="Datarooms"
 						actions={
 							<Button onClick={openCreateDialog}>
 								Create Dataroom
@@ -40,23 +34,15 @@ export const DataroomList = () => {
 				<div className="flex-1 overflow-y-auto">
 					<EmptyState
 						icon={Database}
-						title={
-							search ? "No datarooms found" : "No datarooms yet"
-						}
-						description={
-							search
-								? `No datarooms match "${search}"`
-								: "Create your first dataroom to get started"
-						}
+						title="No datarooms yet"
+						description="Create your first dataroom to get started"
 						action={
-							!search ? (
-								<button
-									onClick={openCreateDialog}
-									className="text-primary hover:underline"
-								>
-									Create one now
-								</button>
-							) : null
+							<button
+								onClick={openCreateDialog}
+								className="text-primary hover:underline"
+							>
+								Create one now
+							</button>
 						}
 					/>
 				</div>
@@ -69,7 +55,7 @@ export const DataroomList = () => {
 			{/* Sticky header section */}
 			<div className="shrink-0">
 				<PageTitleBar
-					title={title}
+					title="Datarooms"
 					actions={
 						<Button onClick={openCreateDialog}>
 							Create Dataroom
@@ -81,7 +67,7 @@ export const DataroomList = () => {
 			{/* Scrollable content area */}
 			<div className="flex-1 overflow-y-auto">
 				<div className="flex flex-col gap-4">
-					{filteredDatarooms.map((dataroom) => (
+					{datarooms.map((dataroom) => (
 						<DataroomCard key={dataroom._id} dataroom={dataroom} />
 					))}
 				</div>

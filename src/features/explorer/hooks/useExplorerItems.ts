@@ -1,11 +1,10 @@
 import { useMutation } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
-import { useSearchParams } from "react-router";
 import { useSafeQuery } from "../../../hooks/useSafeQuery";
 import { useCreateFolderDialog } from "../../../stores/dialogs/useCreateFolderDialog";
 import { useUploadFileDialog } from "../../../stores/dialogs/useUploadFileDialog";
 import { useAuth } from "../../auth/AuthProvider";
-import { useMemo, useCallback } from "react";
+import { useCallback } from "react";
 import type { Id } from "../../../../convex/_generated/dataModel";
 import type { Folder, File } from "../../../types";
 
@@ -25,23 +24,19 @@ interface UseExplorerItemsReturn {
 	files: File[];
 	isLoading: boolean;
 	error: Error | null;
-	filteredFolders: Folder[];
-	filteredFiles: File[];
 	hasItems: boolean;
 	actions: ExplorerActions;
 }
 
 /**
  * Hook for managing file explorer data and actions
- * Handles fetching folders/files, filtering, and action dialogs
+ * Handles fetching folders/files and action dialogs
  */
 export function useExplorerItems(
 	options: UseExplorerItemsOptions
 ): UseExplorerItemsReturn {
 	const { userId, dataroomId, folderId } = options;
 	const { user } = useAuth();
-	const [searchParams] = useSearchParams();
-	const search = searchParams.get("search") || "";
 
 	const createFolderDialog = useCreateFolderDialog();
 	const uploadFileDialog = useUploadFileDialog();
@@ -71,22 +66,7 @@ export function useExplorerItems(
 
 	const safeFolders = folders || [];
 	const safeFiles = files || [];
-
-	const filteredFolders = useMemo(() => {
-		if (!search) return safeFolders;
-		return safeFolders.filter((f) =>
-			f.name.toLowerCase().includes(search.toLowerCase())
-		);
-	}, [safeFolders, search]);
-
-	const filteredFiles = useMemo(() => {
-		if (!search) return safeFiles;
-		return safeFiles.filter((f) =>
-			f.name.toLowerCase().includes(search.toLowerCase())
-		);
-	}, [safeFiles, search]);
-
-	const hasItems = filteredFolders.length > 0 || filteredFiles.length > 0;
+	const hasItems = safeFolders.length > 0 || safeFiles.length > 0;
 
 	const openCreateFolderDialog = useCallback(() => {
 		if (!user) return;
@@ -130,8 +110,6 @@ export function useExplorerItems(
 		files: safeFiles,
 		isLoading: foldersLoading || filesLoading,
 		error: foldersError || filesError,
-		filteredFolders,
-		filteredFiles,
 		hasItems,
 		actions: {
 			openCreateFolderDialog,

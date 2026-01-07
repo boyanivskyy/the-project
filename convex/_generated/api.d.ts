@@ -15,6 +15,7 @@ import type * as emails from "../emails.js";
 import type * as files from "../files.js";
 import type * as folderUtils from "../folderUtils.js";
 import type * as folders from "../folders.js";
+import type * as search from "../search.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   folderUtils: typeof folderUtils;
   folders: typeof folders;
+  search: typeof search;
 }>;
 
 /**
