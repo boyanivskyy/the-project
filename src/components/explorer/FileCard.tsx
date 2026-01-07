@@ -11,7 +11,11 @@ import {
 import { Button } from "../ui/button";
 import { FilePreviewDialog } from "../preview/FilePreviewDialog";
 import { type File as FileType } from "../../types";
-import { formatFileSize } from "../../lib/validation";
+import {
+	formatFileSize,
+	formatDate,
+	getFileFormat,
+} from "../../lib/validation";
 import { useRenameDialog } from "../../stores/dialogs/useRenameDialog";
 import { useDeleteDialog } from "../../stores/dialogs/useDeleteDialog";
 import type { Id } from "../../../convex/_generated/dataModel";
@@ -49,10 +53,13 @@ export function FileCard({ file }: FileCardProps) {
 										{file.name}
 									</h3>
 									<p className="text-xs text-muted-foreground">
-										{formatFileSize(file.size)} •{" "}
-										{new Date(
-											file.createdAt
-										).toLocaleString()}
+										{getFileFormat(
+											file.mimeType,
+											file.name
+										)}{" "}
+										• {formatFileSize(file.size)} • Created{" "}
+										{formatDate(file.createdAt)} • Updated{" "}
+										{formatDate(file.updatedAt)}
 									</p>
 								</div>
 							</button>
@@ -82,15 +89,19 @@ export function FileCard({ file }: FileCardProps) {
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() =>
-								renameDialog.onOpen({
+								renameDialog.open({
 									id: file._id,
 									name: file.name,
-									mutation: (args: {
-										id: Id<"files">;
+									mutation: async (args: {
+										id:
+											| Id<"files">
+											| Id<"folders">
+											| Id<"datarooms">;
 										name: string;
 									}) =>
-										updateFile({
-											...args,
+										await updateFile({
+											id: args.id as Id<"files">,
+											name: args.name,
 											userId: user!._id,
 										}),
 								})
@@ -100,12 +111,17 @@ export function FileCard({ file }: FileCardProps) {
 						</DropdownMenuItem>
 						<DropdownMenuItem
 							onClick={() =>
-								deleteDialog.onOpen({
+								deleteDialog.open({
 									id: file._id,
 									name: file.name,
-									mutation: (args: { id: Id<"files"> }) =>
-										deleteFile({
-											...args,
+									mutation: async (args: {
+										id:
+											| Id<"files">
+											| Id<"folders">
+											| Id<"datarooms">;
+									}) =>
+										await deleteFile({
+											id: args.id as Id<"files">,
 											userId: user!._id,
 										}),
 									title: "Delete File?",

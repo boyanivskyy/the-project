@@ -23,7 +23,7 @@ export const EmptyState = ({
 				className
 			)}
 		>
-			{Icon && <Icon className="h-12 w-12 text-muted-foreground mb-4" />}
+			{Icon && <Icon className="h-24 w-24 text-muted-foreground mb-4" />}
 			<h3 className="text-lg font-semibold mb-2">{title}</h3>
 			{description && (
 				<p className="text-sm text-muted-foreground mb-4 max-w-sm">

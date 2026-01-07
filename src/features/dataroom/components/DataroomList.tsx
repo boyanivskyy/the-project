@@ -2,7 +2,7 @@ import { DataroomCard } from "./DataroomCard";
 import { EmptyState } from "../../../components/shared/EmptyState";
 import { LoadingList } from "../../../components/shared/LoadingList";
 import { PageTitleBar } from "../../../components/shared/PageTitleBar";
-import { FolderPlus } from "lucide-react";
+import { Database } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { useSearchParams } from "react-router";
 import { useAuth } from "../../auth/AuthProvider";
@@ -39,7 +39,7 @@ export const DataroomList = () => {
 				</div>
 				<div className="flex-1 overflow-y-auto">
 					<EmptyState
-						icon={FolderPlus}
+						icon={Database}
 						title={
 							search ? "No datarooms found" : "No datarooms yet"
 						}

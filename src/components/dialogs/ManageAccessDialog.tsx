@@ -17,6 +17,7 @@ import { useAuth } from "../../features/auth/AuthProvider";
 import { toast } from "sonner";
 import { Mail, Trash2, UserPlus } from "lucide-react";
 import type { Id } from "../../../convex/_generated/dataModel";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 export function ManageAccessDialog() {
 	const { user } = useAuth();
@@ -50,8 +51,8 @@ export function ManageAccessDialog() {
 			toast.success(`Invitation sent to ${email}`);
 			setEmail("");
 			setRole("viewer");
-		} catch (error: any) {
-			toast.error(error.message || "Failed to send invitation");
+		} catch (error) {
+			toast.error(toUserMessage(error, "Failed to send invitation"));
 		} finally {
 			setIsInviting(false);
 		}
@@ -70,8 +71,8 @@ export function ManageAccessDialog() {
 				newRole,
 			});
 			toast.success("Role updated");
-		} catch (error: any) {
-			toast.error(error.message || "Failed to update role");
+		} catch (error) {
+			toast.error(toUserMessage(error, "Failed to update role"));
 		}
 	};
 
@@ -87,8 +88,8 @@ export function ManageAccessDialog() {
 				accessId,
 			});
 			toast.success(`Removed access for ${userEmail}`);
-		} catch (error: any) {
-			toast.error(error.message || "Failed to remove access");
+		} catch (error) {
+			toast.error(toUserMessage(error, "Failed to remove access"));
 		}
 	};
 

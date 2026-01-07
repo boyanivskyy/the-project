@@ -1,6 +1,5 @@
 import { Outlet } from "react-router";
 import { Header } from "../Header";
-import { Toaster } from "sonner";
 import { Sidebar } from "./Sidebar";
 import { ErrorBoundary } from "../shared/ErrorBoundary";
 import { DialogProvider } from "../providers/DialogProvider";
@@ -19,7 +18,6 @@ export function AppLayout() {
 					</div>
 				</main>
 			</div>
-			<Toaster position="bottom-right" />
 			<DialogProvider />
 		</div>
 	);

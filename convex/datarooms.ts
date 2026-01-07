@@ -89,6 +89,31 @@ export const create = mutation({
 			throw new Error("User not found");
 		}
 
+		// Check if a dataroom with the same name (case-insensitive) already exists for this user
+		const accessRecords = await ctx.db
+			.query("dataroomAccess")
+			.withIndex("by_userEmail", (q) => q.eq("userEmail", user.email))
+			.collect();
+
+		const existingDatarooms = await Promise.all(
+			accessRecords.map(async (access) => {
+				const dataroom = await ctx.db.get(access.dataroomId);
+				return dataroom;
+			})
+		);
+
+		const normalizedNewName = args.name.toLowerCase();
+		const duplicateDataroom = existingDatarooms.find(
+			(dataroom) =>
+				dataroom && dataroom.name.toLowerCase() === normalizedNewName
+		);
+
+		if (duplicateDataroom) {
+			throw new Error(
+				`A dataroom with the name "${duplicateDataroom.name}" already exists`
+			);
+		}
+
 		const now = Date.now();
 		const dataroomId = await ctx.db.insert("datarooms", {
 			name: args.name,

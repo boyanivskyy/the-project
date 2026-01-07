@@ -3,6 +3,7 @@ import { ErrorBoundary as ReactErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { AlertTriangle } from "lucide-react";
+import { toUserMessage } from "../../lib/errors/toUserMessage";
 
 interface ErrorFallbackProps {
 	error: Error;
@@ -10,40 +11,14 @@ interface ErrorFallbackProps {
 }
 
 /**
- * Maps errors to user-friendly messages
- */
-function getErrorMessage(error: Error): string {
-	// Check for ArgumentValidationError
-	if (
-		error.name === "ArgumentValidationError" ||
-		error.message.includes("ArgumentValidationError") ||
-		error.message.includes("does not match validator")
-	) {
-		return "The requested resource was not found. Please check the URL.";
-	}
-
-	// Check for ConvexError (application errors)
-	if (error.name === "ConvexError" || (error as any).data) {
-		return error.message || "An error occurred. Please try again.";
-	}
-
-	// Network errors
-	if (
-		error.message.includes("network") ||
-		error.message.includes("fetch") ||
-		error.message.includes("Failed to fetch")
-	) {
-		return "Unable to connect. Please check your internet connection.";
-	}
-
-	// Generic error
-	return "Something went wrong. Please try again.";
-}
-
-/**
  * Fallback UI component displayed when an error is caught
  */
 function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
+	const userMessage = toUserMessage(
+		error,
+		"Something went wrong. Please try again."
+	);
+
 	const handleGoHome = () => {
 		window.location.href = "/";
 	};
@@ -55,7 +30,7 @@ function ErrorFallback({ error, resetErrorBoundary }: ErrorFallbackProps) {
 				Something went wrong
 			</h2>
 			<p className="text-muted-foreground mb-6 text-center max-w-md">
-				{getErrorMessage(error)}
+				{userMessage}
 			</p>
 			<div className="flex gap-3">
 				<Button onClick={resetErrorBoundary} variant="outline">
@@ -86,7 +61,10 @@ export function ErrorBoundary({ children, onError }: Props) {
 		console.error("Error caught by ErrorBoundary:", error, errorInfo);
 
 		// Show toast notification
-		const message = getErrorMessage(error);
+		const message = toUserMessage(
+			error,
+			"Something went wrong. Please try again."
+		);
 		toast.error(message);
 
 		// Call optional error handler

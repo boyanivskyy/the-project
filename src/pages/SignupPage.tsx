@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card } from "../components/ui/card";
 import { toast } from "sonner";
+import { toUserMessage } from "../lib/errors/toUserMessage";
 
 export function SignupPage() {
 	const { signup } = useAuth();
@@ -24,9 +25,10 @@ export function SignupPage() {
 		try {
 			await signup(fullName, email, password);
 			toast.success("Account created successfully!");
-		} catch (error: any) {
-			setError("Email already in use");
-			toast.error("Email already in use");
+		} catch (error) {
+			const errorMessage = toUserMessage(error, "Email already in use");
+			setError(errorMessage);
+			toast.error(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}

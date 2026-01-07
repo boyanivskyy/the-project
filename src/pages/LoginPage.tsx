@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Card } from "../components/ui/card";
 import { toast } from "sonner";
+import { toUserMessage } from "../lib/errors/toUserMessage";
 
 export function LoginPage() {
 	const { login } = useAuth();
@@ -23,8 +24,8 @@ export function LoginPage() {
 		try {
 			await login(email, password);
 			toast.success("Successfully logged in!");
-		} catch (error: any) {
-			const errorMessage = error.message || "Failed to login";
+		} catch (error) {
+			const errorMessage = toUserMessage(error, "Failed to login");
 			setError(errorMessage);
 			toast.error(errorMessage);
 		} finally {
@@ -81,7 +82,7 @@ export function LoginPage() {
 				{error && (
 					<div className="mt-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
 						<p className="text-sm text-muted-foreground mb-3">
-							Something went wrong. Do you have an account?
+							{error}
 						</p>
 						<Button
 							variant="outline"

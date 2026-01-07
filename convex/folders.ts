@@ -99,16 +99,19 @@ export const create = mutation({
 		// Check if user has editor permissions
 		await checkUserAccess(ctx, args.userId, args.dataroomId, "editor");
 
-		// Check for duplicate name
-		const existing = await ctx.db
+		// Check for duplicate name (case-insensitive)
+		const folders = await ctx.db
 			.query("folders")
 			.withIndex("by_dataroomId_parentFolderId", (q) =>
 				q
 					.eq("dataroomId", args.dataroomId)
 					.eq("parentFolderId", args.parentFolderId)
 			)
-			.filter((q) => q.eq(q.field("name"), args.name))
-			.first();
+			.collect();
+
+		const existing = folders.find(
+			(folder) => folder.name.toLowerCase() === args.name.toLowerCase()
+		);
 
 		if (existing) {
 			throw new Error("A folder with this name already exists");

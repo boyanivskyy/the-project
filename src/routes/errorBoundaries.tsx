@@ -2,63 +2,35 @@ import { useRouteError, useNavigate, isRouteErrorResponse } from "react-router";
 import { Button } from "../components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-
-/**
- * Maps errors to user-friendly messages
- */
-const getErrorMessage = (error: unknown): string => {
-	// Handle Response errors from loaders
-	if (isRouteErrorResponse(error)) {
-		if (error.status === 404) {
-			return "The requested resource was not found. Please check the URL.";
-		}
-		return error.statusText || "An error occurred. Please try again.";
-	}
-
-	// Handle Error objects
-	if (error instanceof Error) {
-		// Check for ArgumentValidationError
-		if (
-			error.name === "ArgumentValidationError" ||
-			error.message.includes("ArgumentValidationError") ||
-			error.message.includes("does not match validator")
-		) {
-			return "The requested resource was not found. Please check the URL.";
-		}
-
-		// Check for ConvexError (application errors)
-		if (error.name === "ConvexError" || (error as any).data) {
-			return error.message || "An error occurred. Please try again.";
-		}
-
-		// Network errors
-		if (
-			error.message.includes("network") ||
-			error.message.includes("fetch") ||
-			error.message.includes("Failed to fetch")
-		) {
-			return "Unable to connect. Please check your internet connection.";
-		}
-
-		return error.message || "Something went wrong. Please try again.";
-	}
-
-	// Generic error
-	return "Something went wrong. Please try again.";
-};
+import { toUserMessage } from "../lib/errors/toUserMessage";
 
 /**
  * Base error fallback UI component for route errors
  */
 const ErrorFallback = ({ error }: { error: unknown }) => {
 	const navigate = useNavigate();
-	const message = getErrorMessage(error);
+	const message = toUserMessage(
+		error,
+		"Something went wrong. Please try again."
+	);
+
+	const logoutErrors = ["Access denied", "User not found"];
 
 	const handleGoHome = () => {
+		alert(message);
+
+		if (logoutErrors.includes(message)) {
+			localStorage.removeItem("authUser");
+			window.location.href = "/login";
+			return;
+		}
 		navigate("/");
 	};
 
 	const handleReset = () => {
+		if (logoutErrors.includes(message)) {
+			localStorage.removeItem("authUser");
+		}
 		window.location.reload();
 	};
 
@@ -92,7 +64,10 @@ export const RouteErrorBoundary = () => {
 	console.error("Route error caught:", error);
 
 	// Show toast notification
-	const message = getErrorMessage(error);
+	const message = toUserMessage(
+		error,
+		"Something went wrong. Please try again."
+	);
 	toast.error(message);
 
 	return <ErrorFallback error={error} />;
