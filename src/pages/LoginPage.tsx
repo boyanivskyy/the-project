@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../features/auth/AuthProvider";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,19 +9,24 @@ import { toast } from "sonner";
 
 export function LoginPage() {
 	const { login } = useAuth();
+	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setIsLoading(true);
+		setError(null);
 
 		try {
 			await login(email, password);
 			toast.success("Successfully logged in!");
 		} catch (error: any) {
-			toast.error(error.message || "Failed to login");
+			const errorMessage = error.message || "Failed to login";
+			setError(errorMessage);
+			toast.error(errorMessage);
 		} finally {
 			setIsLoading(false);
 		}
@@ -72,6 +77,21 @@ export function LoginPage() {
 						{isLoading ? "Signing in..." : "Sign In"}
 					</Button>
 				</form>
+
+				{error && (
+					<div className="mt-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+						<p className="text-sm text-muted-foreground mb-3">
+							Something went wrong. Do you have an account?
+						</p>
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => navigate("/signup")}
+						>
+							Go to Sign Up
+						</Button>
+					</div>
+				)}
 
 				<div className="mt-6 text-center text-sm">
 					<span className="text-muted-foreground">

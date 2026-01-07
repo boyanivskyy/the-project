@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useAuth } from "../features/auth/AuthProvider";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,20 +9,24 @@ import { toast } from "sonner";
 
 export function SignupPage() {
 	const { signup } = useAuth();
+	const navigate = useNavigate();
 	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [error, setError] = useState<string | null>(null);
 
 	const handleSubmit = async (e: FormEvent) => {
 		e.preventDefault();
 		setIsLoading(true);
+		setError(null);
 
 		try {
 			await signup(fullName, email, password);
 			toast.success("Account created successfully!");
 		} catch (error: any) {
-			toast.error(error.message || "Failed to create account");
+			setError("Email already in use");
+			toast.error("Email already in use");
 		} finally {
 			setIsLoading(false);
 		}
@@ -90,6 +94,21 @@ export function SignupPage() {
 						{isLoading ? "Creating account..." : "Sign Up"}
 					</Button>
 				</form>
+
+				{error && (
+					<div className="mt-4 p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+						<p className="text-sm text-muted-foreground mb-3">
+							{error}
+						</p>
+						<Button
+							variant="outline"
+							className="w-full"
+							onClick={() => navigate("/login")}
+						>
+							Go to Sign In
+						</Button>
+					</div>
+				)}
 
 				<div className="mt-6 text-center text-sm">
 					<span className="text-muted-foreground">
