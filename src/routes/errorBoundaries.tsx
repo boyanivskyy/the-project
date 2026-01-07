@@ -17,8 +17,6 @@ const ErrorFallback = ({ error }: { error: unknown }) => {
 	const logoutErrors = ["Access denied", "User not found"];
 
 	const handleGoHome = () => {
-		alert(message);
-
 		if (logoutErrors.includes(message)) {
 			localStorage.removeItem("authUser");
 			window.location.href = "/login";
