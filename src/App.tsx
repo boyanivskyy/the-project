@@ -6,7 +6,7 @@ export const App = () => {
 	return (
 		<AuthProvider>
 			<Outlet />
-			<Toaster position="bottom-right" />
+			<Toaster position="bottom-right" richColors />
 		</AuthProvider>
 	);
 };

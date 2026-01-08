@@ -261,10 +261,9 @@ export const SearchInput = ({ className }: SearchInputProps) => {
 									<div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
 										Datarooms
 									</div>
-									{datarooms.map((item) => {
-										const index = itemIndex++;
-										return renderItem(item, index);
-									})}
+									{datarooms.map((item) =>
+										renderItem(item, itemIndex++)
+									)}
 								</div>
 							)}
 							{folders.length > 0 && (
@@ -275,10 +274,9 @@ export const SearchInput = ({ className }: SearchInputProps) => {
 									<div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
 										Folders
 									</div>
-									{folders.map((item) => {
-										const index = itemIndex++;
-										return renderItem(item, index);
-									})}
+									{folders.map((item) =>
+										renderItem(item, itemIndex++)
+									)}
 								</div>
 							)}
 							{files.length > 0 && (
@@ -290,10 +288,9 @@ export const SearchInput = ({ className }: SearchInputProps) => {
 									<div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase">
 										Files
 									</div>
-									{files.map((item) => {
-										const index = itemIndex++;
-										return renderItem(item, index);
-									})}
+									{files.map((item) =>
+										renderItem(item, itemIndex++)
+									)}
 								</div>
 							)}
 						</div>
